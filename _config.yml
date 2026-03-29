@@ -1,0 +1,19 @@
+title: ẍ xdoubledot
+description: AI-powered Hall Effect Thrusters for VLEO
+baseurl: "/xdoubledot"
+url: "https://maxsimmonds.engineer"
+
+theme: minima
+
+minima:
+  skin: dark
+
+markdown: kramdown
+highlighter: rouge
+
+plugins:
+  - jekyll-feed
+
+exclude:
+  - README.md
+  - "*.sh"
