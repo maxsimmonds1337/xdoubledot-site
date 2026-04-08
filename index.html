@@ -60,6 +60,19 @@
             line-height: 1;
         }
 
+        .logo::before {
+            content: '¨';
+            position: absolute;
+            top: 0.06em;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.62em;
+            font-style: normal;
+            font-family: 'Times New Roman', serif;
+            color: var(--accent);
+            pointer-events: none;
+        }
+
         nav {
             display: flex;
             align-items: center;
@@ -619,26 +632,237 @@
         </div>
     </section>
 
+    <!-- ── Aegis ─────────────────────────────────────────────────────── -->
+    <section id="aegis" style="padding: 0; background: var(--bg); border-top: 1px solid var(--border);">
+        <div style="display: grid; grid-template-columns: 1.1fr 1fr; min-height: 560px;">
+            <!-- Canvas -->
+            <div style="position: relative; overflow: hidden; background: #00000a;">
+                <canvas id="aegis-canvas" style="display:block; width:100%; height:100%; min-height:560px;"></canvas>
+            </div>
+            <!-- Text -->
+            <div style="padding: 80px 80px 80px 64px; display: flex; flex-direction: column; justify-content: center; border-left: 1px solid var(--border);">
+                <div class="section-label">Aegis</div>
+                <h2 class="section-title" style="max-width:100%;">The magnetic brain<br>of the thruster</h2>
+                <p style="color:var(--text-muted); font-size:0.95rem; line-height:1.85; margin-bottom:20px;">
+                    In a Hall thruster, the shape of the magnetic field is everything. Too flat and it cuts straight through the plasma into the channel walls — ions bombard the ceramic and your thruster wears out in months. Shape it right and the field lines run almost perfectly parallel to those walls, dramatically reducing the erosion.
+                </p>
+                <p style="color:var(--text-muted); font-size:0.95rem; line-height:1.85; margin-bottom:36px;">
+                    Aegis runs three electromagnet coils through a reinforcement learning controller, continuously holding that optimal field topology during flight. Not a lookup table, not a fixed operating point — an agent that actively responds to changing plasma conditions, temperature drift, and mission phase. The graphic shows the field line geometry it's maintaining.
+                </p>
+                <div style="display:flex; flex-direction:column; gap:14px;">
+                    <div style="display:flex; gap:14px; align-items:flex-start;">
+                        <div style="width:6px; height:6px; border-radius:50%; background:var(--accent); margin-top:7px; flex-shrink:0;"></div>
+                        <span style="font-size:0.875rem; color:var(--text-muted);">Field lines run parallel to channel walls — near-zero wall ion flux</span>
+                    </div>
+                    <div style="display:flex; gap:14px; align-items:flex-start;">
+                        <div style="width:6px; height:6px; border-radius:50%; background:var(--accent); margin-top:7px; flex-shrink:0;"></div>
+                        <span style="font-size:0.875rem; color:var(--text-muted);">Runs autonomously on-board — no ground commands needed</span>
+                    </div>
+                    <div style="display:flex; gap:14px; align-items:flex-start;">
+                        <div style="width:6px; height:6px; border-radius:50%; background:var(--accent); margin-top:7px; flex-shrink:0;"></div>
+                        <span style="font-size:0.875rem; color:var(--text-muted);">Balances lifetime, thrust, and power draw simultaneously</span>
+                    </div>
+                    <div style="display:flex; gap:14px; align-items:flex-start;">
+                        <div style="width:6px; height:6px; border-radius:50%; background:var(--accent); margin-top:7px; flex-shrink:0;"></div>
+                        <span style="font-size:0.875rem; color:var(--text-muted);">RL agent trained on a validated 2D finite-difference physics model</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+    (function () {
+        const canvas = document.getElementById('aegis-canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const dpr = window.devicePixelRatio || 1;
+
+        // Geometry (mm)
+        const IP_R = 17, OP_RI = 24, OP_RO = 31;
+        const CH_IN = 18, CH_OUT = 23, BN_T = 1.0;
+        const CH_L = 20, BY_ZB = 28;
+
+        // Field lines: cubic Bezier [r0,z0, cp1r,cp1z, cp2r,cp2z, r3,z3]
+        // in thruster mm coords. Arcing from inner pole (r≈17) to outer pole (r≈24).
+        const FL = [
+            { b: [17,-4,  17,-13, 24,-13, 24,-4],  dim:0.20 },
+            { b: [17,-1,  17,-8,  24,-8,  24,-1],  dim:0.40 },
+            { b: [17, 0,  17,-3,  24,-3,  24, 0],  dim:1.0, key:true },  // separatrix
+            { b: [17, 2,  17,-1,  24,-1,  24, 2],  dim:0.85 },
+            { b: [17, 5,  17, 1,  24, 1,  24, 5],  dim:0.72 },
+            { b: [17, 9,  17, 5,  24, 5,  24, 9],  dim:0.62 },
+            { b: [17,14,  17,10,  24,10,  24,14],  dim:0.52 },
+            { b: [17,19,  17,15,  24,15,  24,19],  dim:0.42 },
+        ];
+        const particles = FL.map(() => ({ t: Math.random(), spd: 0.0022 + Math.random()*0.002 }));
+
+        let W, H, S, OX, OY;
+        function resize() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            W = canvas.width  = Math.round(rect.width  * dpr);
+            H = canvas.height = Math.round(rect.height * dpr);
+            S  = Math.min(W * 0.82 / 37, H * 0.82 / 44);
+            OX = W * 0.07;
+            OY = H * 0.89 - 12 * S;  // y-position of z=0 (exit plane)
+        }
+        const cx = r => OX + r * S;
+        const cy = z => OY - z * S;
+
+        function bez(t, p0, p1, p2, p3) {
+            const u = 1-t;
+            return u*u*u*p0 + 3*u*u*t*p1 + 3*u*t*t*p2 + t*t*t*p3;
+        }
+        function sampleBez(b, n) {
+            const [r0,z0,c1r,c1z,c2r,c2z,r3,z3] = b;
+            const pts = [];
+            for (let i=0; i<=n; i++) {
+                const t=i/n;
+                pts.push([cx(bez(t,r0,c1r,c2r,r3)), cy(bez(t,z0,c1z,c2z,z3))]);
+            }
+            return pts;
+        }
+        function stroke(pts, col, w, a) {
+            ctx.save();
+            ctx.strokeStyle=col; ctx.lineWidth=w; ctx.globalAlpha=a;
+            ctx.lineCap='round'; ctx.lineJoin='round';
+            ctx.beginPath();
+            pts.forEach(([x,y],i)=> i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y));
+            ctx.stroke(); ctx.restore();
+        }
+        function rect(r0,r1,z0,z1) {
+            ctx.beginPath();
+            ctx.rect(cx(r0), cy(z1), cx(r1)-cx(r0), cy(z0)-cy(z1));
+            ctx.fill(); ctx.stroke();
+        }
+
+        let t=0;
+        function frame() {
+            t += 0.005;
+            ctx.clearRect(0,0,W,H);
+
+            // bg
+            ctx.fillStyle='#00000c'; ctx.fillRect(0,0,W,H);
+
+            // ambient plume glow
+            const midX = (cx(CH_IN)+cx(CH_OUT))/2;
+            const ag = ctx.createRadialGradient(midX,cy(0),0, midX,cy(0), S*22);
+            ag.addColorStop(0,'rgba(0,70,200,0.10)'); ag.addColorStop(1,'rgba(0,0,0,0)');
+            ctx.fillStyle=ag; ctx.fillRect(0,0,W,H);
+
+            // iron
+            ctx.fillStyle='rgba(16,24,46,1)'; ctx.strokeStyle='rgba(55,90,150,0.45)'; ctx.lineWidth=1*dpr;
+            rect(0, OP_RO, BY_ZB-8, BY_ZB);   // back yoke
+            rect(0, IP_R,  0, CH_L);            // inner pole
+            rect(OP_RI, OP_RO, 0, CH_L);        // outer pole
+
+            // BN walls
+            ctx.fillStyle='rgba(30,34,58,0.9)'; ctx.strokeStyle='rgba(70,80,120,0.5)';
+            rect(CH_IN-BN_T, CH_IN, 0, CH_L);
+            rect(CH_OUT, CH_OUT+BN_T, 0, CH_L);
+
+            // plasma channel
+            const pulse = 0.5 + 0.15*Math.sin(t*2.1);
+            const chW = cx(CH_OUT)-cx(CH_IN);
+            const pg = ctx.createLinearGradient(cx(CH_IN),0, cx(CH_OUT),0);
+            pg.addColorStop(0,   `rgba(55,0,170,${0.28*pulse})`);
+            pg.addColorStop(0.4, `rgba(90,45,240,${0.52*pulse})`);
+            pg.addColorStop(0.5, `rgba(50,130,255,${0.62*pulse})`);
+            pg.addColorStop(0.6, `rgba(90,45,240,${0.52*pulse})`);
+            pg.addColorStop(1,   `rgba(55,0,170,${0.28*pulse})`);
+            ctx.fillStyle=pg;
+            ctx.fillRect(cx(CH_IN), cy(CH_L), chW, cy(0)-cy(CH_L));
+
+            // plume
+            const pl = ctx.createRadialGradient(midX,cy(-1),0, midX,cy(-1),chW*2.8);
+            pl.addColorStop(0,`rgba(0,90,255,${0.28*pulse})`);
+            pl.addColorStop(0.5,`rgba(0,55,180,${0.10*pulse})`);
+            pl.addColorStop(1,'rgba(0,0,0,0)');
+            ctx.fillStyle=pl; ctx.beginPath(); ctx.arc(midX,cy(-1),chW*2.8,0,Math.PI*2); ctx.fill();
+
+            // field lines
+            FL.forEach((fl,idx) => {
+                const pts = sampleBez(fl.b, 80);
+                const col = fl.key ? '#00d4ff' : '#3080ee';
+                stroke(pts, col, 11*dpr, 0.030*fl.dim);
+                stroke(pts, col,  4*dpr, 0.090*fl.dim);
+                stroke(pts, col, 1.2*dpr,0.55 *fl.dim);
+
+                // particle
+                const p = particles[idx];
+                p.t = (p.t + p.spd) % 1.0;
+                const [r0,z0,c1r,c1z,c2r,c2z,r3,z3]=fl.b;
+                const px=cx(bez(p.t,r0,c1r,c2r,r3)), py=cy(bez(p.t,z0,c1z,c2z,z3));
+                const pg2=ctx.createRadialGradient(px,py,0,px,py,7*dpr);
+                pg2.addColorStop(0, fl.key?'rgba(255,255,255,0.95)':`rgba(100,190,255,${0.6*fl.dim})`);
+                pg2.addColorStop(1,'rgba(0,0,0,0)');
+                ctx.fillStyle=pg2; ctx.beginPath(); ctx.arc(px,py,7*dpr,0,Math.PI*2); ctx.fill();
+            });
+
+            // exit plane
+            ctx.save();
+            ctx.strokeStyle='rgba(0,212,255,0.20)'; ctx.lineWidth=1*dpr;
+            ctx.setLineDash([4*dpr,5*dpr]);
+            ctx.beginPath(); ctx.moveTo(cx(0),cy(0)); ctx.lineTo(cx(36),cy(0)); ctx.stroke();
+            ctx.setLineDash([]); ctx.restore();
+
+            // centreline
+            ctx.save();
+            ctx.strokeStyle='rgba(255,255,255,0.07)'; ctx.lineWidth=1*dpr;
+            ctx.setLineDash([3*dpr,7*dpr]);
+            ctx.beginPath(); ctx.moveTo(cx(0),cy(-13)); ctx.lineTo(cx(0),cy(30)); ctx.stroke();
+            ctx.setLineDash([]); ctx.restore();
+
+            // labels
+            const fs = Math.max(9, Math.round(10.5*S/14)) * dpr;
+            ctx.font = `${fs}px Inter,sans-serif`;
+
+            ctx.fillStyle='rgba(0,212,255,0.38)';
+            ctx.textAlign='left';
+            ctx.fillText('─ ─  exit plane', cx(0.5), cy(0)+14*dpr);
+
+            ctx.fillStyle='rgba(110,175,255,0.45)';
+            ctx.textAlign='center';
+            ctx.fillText('PLASMA', cx(20.5), cy(10));
+
+            ctx.fillStyle='rgba(0,212,255,0.60)';
+            ctx.textAlign='right';
+            const ky = cy(0)-8*dpr;
+            ctx.fillText('shielded field line', cx(16), ky);
+
+            requestAnimationFrame(frame);
+        }
+
+        resize();
+        frame();
+        window.addEventListener('resize', resize);
+    })();
+    </script>
+
     <!-- ── Product ────────────────────────────────────────────────────── -->
     <section id="product" style="background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
         <div class="section-label">Product</div>
-        <h2 class="section-title">200 W Hall Thruster System</h2>
-        <p class="section-sub">Our first product is a 200 W Krypton Hall thruster with integrated Aegis magnetic field control, targeting microsatellite and small satellite platforms operating in VLEO and LEO.</p>
+        <h2 class="section-title">A complete propulsion system —<br>HET + PPU, fully integrated</h2>
+        <p class="section-sub">Most thruster vendors sell you a thruster head and leave the PPU to someone else. We ship the full electric propulsion system: 200 W Krypton Hall thruster, power processing unit, and Aegis flight software — qualified together, integrated, ready to bolt on.</p>
 
         <div class="product-layout">
             <div>
                 <div class="dev-badge">In Development</div>
                 <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.8; margin-bottom: 32px;">
-                    The thruster system is currently in the simulation and detailed design phase. Our physics models have been validated against published experimental data and independent simulation frameworks. We are progressing toward bench-level hardware testing.
+                    The system is in the simulation and detailed design phase. Physics models have been validated against published experimental data and independent simulation frameworks. Hardware development is in progress.
                 </p>
                 <div class="spec-table">
+                    <div class="spec-row">
+                        <div class="spec-key" style="font-weight:600; color:var(--text);">Thruster (HET)</div>
+                        <div class="spec-val"></div>
+                    </div>
                     <div class="spec-row">
                         <div class="spec-key">Propellant</div>
                         <div class="spec-val">Krypton (Kr)</div>
                     </div>
                     <div class="spec-row">
                         <div class="spec-key">Power level</div>
-                        <div class="spec-val">200 W (nominal)</div>
+                        <div class="spec-val">200 W nominal</div>
                     </div>
                     <div class="spec-row">
                         <div class="spec-key">Discharge channel</div>
@@ -646,15 +870,27 @@
                     </div>
                     <div class="spec-row">
                         <div class="spec-key">Magnetic shielding</div>
-                        <div class="spec-key">Aegis flux-surface matched</div>
+                        <div class="spec-val">Aegis flux-surface matched poles</div>
                     </div>
                     <div class="spec-row">
-                        <div class="spec-key">Magnetic control</div>
-                        <div class="spec-val">Real-time Aegis RL optimiser</div>
+                        <div class="spec-key" style="font-weight:600; color:var(--text);">Power Processing Unit</div>
+                        <div class="spec-val"></div>
                     </div>
                     <div class="spec-row">
-                        <div class="spec-key">PPU</div>
-                        <div class="spec-val">Integrated, STM32-controlled</div>
+                        <div class="spec-key">Discharge supply</div>
+                        <div class="spec-val">250 V, current-regulated</div>
+                    </div>
+                    <div class="spec-row">
+                        <div class="spec-key">Coil drivers</div>
+                        <div class="spec-key">3-channel, ±5 A, Aegis-controlled</div>
+                    </div>
+                    <div class="spec-row">
+                        <div class="spec-key">Controller</div>
+                        <div class="spec-val">STM32, runs Aegis flight software</div>
+                    </div>
+                    <div class="spec-row">
+                        <div class="spec-key" style="font-weight:600; color:var(--text);">System</div>
+                        <div class="spec-val"></div>
                     </div>
                     <div class="spec-row">
                         <div class="spec-key">Export classification</div>
@@ -716,8 +952,8 @@
                 <img src="assets/max.jpeg" alt="Max Simmonds" class="team-photo">
                 <div class="team-info">
                     <div class="team-name">Max Simmonds</div>
-                    <div class="team-role">Co-founder · Systems &amp; Software</div>
-                    <div class="team-bio">Spacecraft systems engineer and software lead. Responsible for Aegis RL architecture, simulation stack, PPU design, and overall system integration.</div>
+                    <div class="team-role">Co-founder · Hardware &amp; Software</div>
+                    <div class="team-bio">Electrical and software engineer. Responsible for PPU design, Aegis RL architecture, simulation stack, and overall system integration.</div>
                 </div>
             </div>
             <div class="team-card">
