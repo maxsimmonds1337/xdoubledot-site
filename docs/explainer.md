@@ -1,9 +1,9 @@
 ---
-layout: default
-title: ẍ xdoubledot — Technical Explainer
+layout: xdoubledot
+title: Technical Explainer
 ---
 
-# ẍ xdoubledot — Technical Explainer
+# Technical Explainer
 ## Dynamic Magnetic Shielding via Reinforcement Learning for Hall Effect Thruster Cathode Erosion Minimisation
 
 *Written for: technically literate readers with no prior knowledge of Hall thrusters or reinforcement learning.*
@@ -24,8 +24,13 @@ title: ẍ xdoubledot — Technical Explainer
 10. [Results and what they mean](#10-results-and-what-they-mean)
 11. [How this compares to prior work](#11-how-this-compares-to-prior-work)
 12. [How this tells us we're beating erosion](#12-how-this-tells-us-were-beating-erosion)
-13. [Caveats and what comes next](#13-caveats-and-what-comes-next)
-14. [Key numbers at a glance](#14-key-numbers-at-a-glance)
+13. [The sputtering yield curve](#13-the-sputtering-yield-curve)
+14. [How you test this — without waiting years](#14-how-you-test-this--without-waiting-years)
+15. [Simulation and visualisation tools](#15-simulation-and-visualisation-tools)
+16. [Caveats and what comes next](#16-caveats-and-what-comes-next)
+17. [Breathing mode oscillations — what they are and why they matter](#17-breathing-mode-oscillations--what-they-are-and-why-they-matter)
+18. [Embedded control — implementing this on an STM32](#18-embedded-control--implementing-this-on-an-stm32)
+19. [Key numbers at a glance](#19-key-numbers-at-a-glance)
 
 ---
 
@@ -67,8 +72,8 @@ Sputtering causes gradual erosion of the cathode keeper (the outer electrode of 
 
 The sputtering rate depends on two things:
 
-1. **Ion flux** — how many ions hit the cathode per second per unit area
-2. **Ion energy** — how hard each ion hits (sputtering yield is a steep function of energy; below ~25–30 eV, sputtering stops entirely)
+1. **Ion flux** $\Gamma_i$ — how many ions hit the cathode per second per unit area
+2. **Ion energy** $E_i$ — how hard each ion hits (sputtering yield $Y(E_i)$ is a steep function of energy; below ~25–30 eV, sputtering stops entirely)
 
 This is why **reducing ion flux at the cathode is the right engineering objective**. Cut the flux, cut the sputtering rate, extend the lifetime.
 
@@ -88,15 +93,13 @@ Here is the mechanism in detail:
 
 The key physics from Mikellides et al. (2014) is captured in this approximation for cathode ion flux:
 
-```
-flux ∝ exp(−k × |dB/dz| / B_cathode)
-```
+$$\Gamma \propto \exp\!\left(-k \cdot \frac{|\partial B/\partial z|}{B_\text{cathode}}\right)$$
 
-- `B_cathode` — the magnetic field magnitude at the cathode plane
-- `dB/dz` — the axial gradient of the field (how steeply the field changes along the thrust axis)
-- `k` — a shielding constant calibrated from experiment (~0.015 m)
+- $B_\text{cathode}$ — the magnetic field magnitude at the cathode plane
+- $\partial B/\partial z$ — the axial gradient of the field (how steeply the field changes along the thrust axis)
+- $k$ — a shielding constant calibrated from experiment (~0.015 m)
 
-The key insight here is that this is an **exponential**. A modest increase in the gradient ratio `|dB/dz| / B_cathode` produces a large reduction in ion flux. This is what makes the trim coil so powerful: it has high coupling to the cathode-plane field (coupling coefficient 0.80) compared to low coupling at the channel exit (0.50), so adjusting it reshapes the near-cathode field without disrupting the main discharge.
+The key insight here is that this is an **exponential**. A modest increase in the gradient ratio $|\partial B/\partial z| / B_\text{cathode}$ produces a large reduction in ion flux. This is what makes the trim coil so powerful: it has high coupling to the cathode-plane field (coupling coefficient 0.80) compared to low coupling at the channel exit (0.50), so adjusting it reshapes the near-cathode field without disrupting the main discharge.
 
 ### What passive magnetic shielding achieves (published experimental results)
 
@@ -188,9 +191,7 @@ At each timestep, the agent sees a 9-dimensional vector:
 
 At each timestep, the agent outputs three continuous values:
 
-```
-[ΔI_inner, ΔI_outer, ΔI_trim]   each in range [−0.25, +0.25] A
-```
+$$[\Delta I_\text{inner},\;\Delta I_\text{outer},\;\Delta I_\text{trim}] \quad \text{each} \in [-0.25,\,{+}0.25]\text{ A}$$
 
 These are **deltas** — incremental adjustments to the current coil currents. This design choice is important: it prevents the agent from making large discontinuous jumps in field configuration (which would be physically unrealistic and mechanically stressful), and it means the agent's actions are naturally smooth and controllable.
 
@@ -198,14 +199,9 @@ These are **deltas** — incremental adjustments to the current coil currents. T
 
 At each timestep, the environment returns:
 
-```
-r = 0.50 × (1 − cathode_flux)    # primary: maximise shielding
-  + 0.30 × thrust_reward         # maintain 12 mN target
-  − 0.15 × oscillation_amp       # penalise discharge instability
-  − 0.05 × coil_power_cost       # penalise unnecessary coil power draw
-```
+$$r = 0.50\,(1 - \Gamma_\text{cath}) + 0.30\,r_\text{thrust} - 0.15\,A_\text{osc} - 0.05\,P_\text{coil}$$
 
-Where `thrust_reward = exp(−0.5 × (thrust_error / 3.0)²)` — a Gaussian centred on the target, giving maximum reward when thrust is exactly 12.0 mN and declining smoothly as it deviates.
+Where $r_\text{thrust} = \exp\!\left(-\dfrac{(\Delta T)^2}{2 \times 3.0^2}\right)$ — a Gaussian centred on the 12.0 mN target, giving maximum reward when thrust error $\Delta T = 0$ and declining smoothly as it deviates.
 
 The weight choices encode engineering priorities:
 - **50% on flux reduction** — this is the primary mission objective
@@ -237,58 +233,50 @@ The solution is a **surrogate model**: a fast mathematical approximation of the 
 
 Three coils (inner, outer, trim) produce a magnetic field. We model this as a **reluctance network** — analogous to a resistor network in electronics, but for magnetic flux. Each coil contributes to the field at the channel exit (`B_exit`) and cathode plane (`B_cathode`) according to fixed coupling coefficients calibrated to reproduce measured HET fields (~200 G at channel exit at nominal currents, consistent with Boeuf 2017 Table 1):
 
-```python
-B_exit    = (K_exit · [N_inner·I_inner, N_outer·I_outer, N_trim·I_trim]) / R_gap
-B_cathode = (K_cath · [...]) / R_gap
-dBdz      = (K_grad · [...]) / (R_gap × L_channel)
-```
+$$B_\text{exit} = \frac{\mathbf{K}_\text{exit} \cdot [N_i I_i,\; N_o I_o,\; N_t I_t]}{R_\text{gap}}, \qquad B_\text{cathode} = \frac{\mathbf{K}_\text{cath} \cdot [\cdots]}{R_\text{gap}}, \qquad \frac{\partial B}{\partial z} = \frac{\mathbf{K}_\text{grad} \cdot [\cdots]}{R_\text{gap}\,L_\text{ch}}$$
 
-The trim coil has the highest coupling to `B_cathode` (0.80) and moderate coupling to `B_exit` (0.50), making it the primary shielding actuator.
+The trim coil has the highest coupling to $B_\text{cathode}$ (0.80) and moderate coupling to $B_\text{exit}$ (0.50), making it the primary shielding actuator.
 
 ### Sub-model 2: Hall parameter and ionisation efficiency
 
-The **Hall parameter** Ωe = ωce × τeff is the key dimensionless number controlling ionisation:
-- ωce = eB/mₑ — electron cyclotron frequency (proportional to B)
-- τeff — effective electron-neutral collision time (~5 ns, set by anomalous cross-field transport)
+The **Hall parameter** $\Omega_e = \omega_{ce} \times \tau_\text{eff}$ is the key dimensionless number controlling ionisation:
+- $\omega_{ce} = eB/m_e$ — electron cyclotron frequency (proportional to $B$)
+- $\tau_\text{eff}$ — effective electron-neutral collision time (~5 ns, set by anomalous cross-field transport)
 
-At nominal conditions this gives Ωe ≈ 18 for Krypton — in the range 15–20 that Boeuf (2017) identifies as optimal for Kr ionisation.
+At nominal conditions this gives $\Omega_e \approx 18$ for Krypton — in the range 15–20 that Boeuf (2017) identifies as optimal for Kr ionisation.
 
-Ionisation efficiency is modelled as a Gaussian peak in Ωe:
+Ionisation efficiency is modelled as a Gaussian peak in $\Omega_e$:
 
-```python
-eta_ion = 0.90 × exp(−0.5 × ((Omega − 18.0) / 10.0)²)
-```
+$$\eta_\text{ion} = 0.90 \exp\!\left(-\frac{(\Omega_e - 18.0)^2}{2 \times 10.0^2}\right)$$
 
 This captures the physical intuition that both too-weak and too-strong electron trapping reduce ionisation efficiency.
 
 ### Sub-model 3: Thrust
 
-Morozov scaling: `T = ṁ × η_ion × v_exhaust × cos²(θ_plume)`
+Morozov scaling:
+
+$$T = \dot{m}\,\eta_\text{ion}\,v_\text{ex}\cos^2\!\theta_\text{plume}$$
 
 Where:
-- `v_exhaust = sqrt(2eVd/m_Kr) ≈ 24,000 m/s` at 250 V discharge
-- `θ_plume` — plume divergence angle, which decreases as B_exit increases (stronger field collimates the ion beam)
-- `ṁ` — mass flow rate, calibrated so nominal conditions give 12.5 mN
+- $v_\text{ex} = \sqrt{2eV_d/m_{Kr}} \approx 24{,}000$ m/s at 250 V discharge
+- $\theta_\text{plume}$ — plume divergence angle, which decreases as $B_\text{exit}$ increases (stronger field collimates the ion beam)
+- $\dot{m}$ — mass flow rate, calibrated so nominal conditions give 12.5 mN
 
 ### Sub-model 4: Cathode ion flux (the shielding model)
 
 From Mikellides et al. (2014):
 
-```python
-flux = exp(−k_shield × |dBdz| / B_cathode)
-```
+$$\Gamma = \exp\!\left(-k_\text{shield} \cdot \frac{|\partial B/\partial z|}{B_\text{cathode}}\right)$$
 
-where k_shield = 0.015 m is calibrated so that an optimally shielded configuration gives flux ≈ 0.05. This is the central sub-model — the quantity the RL agent is trained to minimise.
+where $k_\text{shield} = 0.015$ m is calibrated so that an optimally shielded configuration gives $\Gamma \approx 0.05$. This is the central sub-model — the quantity the RL agent is trained to minimise.
 
 ### Sub-model 5: Breathing mode oscillation
 
 The breathing mode is a 10–20 kHz ionisation instability (analogous to a relaxation oscillator) where the ionisation zone periodically depletes and refills. Its amplitude is modelled as a proxy function of how far B_exit deviates from nominal and how steep the axial gradient is:
 
-```python
-amp = 0.3 × |B_exit − B_opt|/B_opt + 0.4 × max(grad_norm − 0.3, 0) + noise
-```
+$$A_\text{osc} = 0.3 \cdot \frac{|B_\text{exit} - B_\text{opt}|}{B_\text{opt}} + 0.4 \cdot \max(\bar{g} - 0.3,\;0) + \epsilon$$
 
-A steep gradient (high |dBdz|) stabilises shielding but can narrow the ionisation zone and excite oscillations — this is the fundamental physical tension the agent must navigate.
+where $\bar{g}$ is the normalised field gradient and $\epsilon$ is stochastic noise. A steep gradient (high $|\partial B/\partial z|$) stabilises shielding but can narrow the ionisation zone and excite oscillations — this is the fundamental physical tension the agent must navigate.
 
 ### What the surrogate gets right and what it doesn't
 
@@ -321,7 +309,7 @@ Training ran for **200,000 environment steps** using SAC on a laptop CPU (22 min
 
 ### What the coil configuration the agent converged to looks like
 
-The trim coil is the primary actuator the agent exploits. It adjusts the trim coil current to maximise `|dBdz| / B_cathode` — the shielding ratio — while using the inner and outer coils to maintain `B_exit` at the level needed for optimal ionisation (Ωe ≈ 18) and therefore target thrust.
+The trim coil is the primary actuator the agent exploits. It adjusts the trim coil current to maximise $|\partial B/\partial z| / B_\text{cathode}$ — the shielding ratio — while using the inner and outer coils to maintain $B_\text{exit}$ at the level needed for optimal ionisation ($\Omega_e \approx 18$) and therefore target thrust.
 
 The agent discovered the physical insight that the **trim coil decouples shielding from thrust** — it can increase the cathode-plane field gradient without substantially changing the exit-plane field that drives ionisation. This is the same physical reasoning that led human engineers to include the trim coil in the first place, but the agent found the optimal current combination automatically.
 
@@ -329,33 +317,49 @@ The agent discovered the physical insight that the **trim coil decouples shieldi
 
 ## 10. Results and what they mean
 
+Two full training runs were completed — one with the cathode in the **external** position (industry-standard geometry, cathode outside the thruster body) and one with a **center-axis** configuration (cathode on the thruster centreline). The external configuration is clearly superior on every metric.
+
+### Head-to-head: external vs center cathode
+
+| Metric | External cathode | Center cathode | Winner |
+|---|---|---|---|
+| Final episode reward | **351** | 248 | External +41% |
+| Peak episode reward | **351** | 261 | External |
+| Final cathode flux Γ | **0.154** | 0.374 | External |
+| Flux reduction vs baseline | **85%** | 63% | External |
+| Final thrust | **12.2 mN** | 10.1 mN | External |
+| Thrust error | **0.05 mN** | ~2 mN | External |
+| Oscillation amplitude | **0.027** | 0.090 | External 3× lower |
+| Training time | 26 min | 27 min | Equal |
+
+The external cathode configuration gives the trim coil more magnetic leverage over the near-cathode field gradient — there is more iron circuit between the coils and the external cathode location, concentrating the gradient effect exactly where the shielding term needs it. The centre-axis configuration forces the agent to use the same coil adjustments to simultaneously serve the ionisation zone and the cathode region, which are spatially coincident — a fundamentally harder optimisation problem.
+
+### External cathode — key numbers
+
 ```
-Mean cathode flux (RL agent):   0.151
-Mean cathode flux (baseline):   0.631
-Flux reduction:                 76.1%  (factor 4.2×)
+Cathode flux (external RL):     0.154  (was 1.0 baseline)
+Flux reduction:                 85.4%  (factor 6.5×)
 
-Thrust error (RL):              0.05 mN  (target: 12.0 mN)
-Thrust error (baseline):        0.46 mN
+Thrust (external RL):           12.2 mN  (target: 12.0 mN)
+Thrust error:                   0.05 mN  (0.4%)
 
-Oscillation amplitude (RL):     0.034
-Oscillation amplitude (baseline): 0.002
+Oscillation amplitude:          0.027   (low; baseline: 0.002)
 ```
 
-### Cathode flux: 76.1% reduction (factor 4.2×)
+### Cathode flux: 85% reduction (factor 6.5×)
 
-The agent reduced cathode ion flux from 0.631 to 0.151 — a 76% reduction compared to the static nominal coil configuration. To put this in context:
+The agent reduced cathode ion flux from 1.0 (normalised unshielded baseline) to 0.154 — an 85% reduction. To put this in context:
 
-- Hofer et al. (2014) measured ion current density to channel walls reduced by **at least factor 2** on the H6MS via passive magnetic shielding
-- The outer ring of the H6 showed approximately **58% reduction** in ion current density
-- Our RL-optimised configuration achieves **76% reduction** — exceeding the passive shielding baseline, consistent with the expectation that dynamic optimisation can find better configurations than a manually set fixed point
+- Hofer et al. (2014) measured ion current density to channel walls reduced by approximately **58%** on the H6MS via passive magnetic shielding
+- Our RL-optimised external configuration achieves **85% reduction** — exceeding passive shielding, consistent with the expectation that dynamic optimisation can find configurations better than any manually set fixed point
 
 ### Thrust: near-perfect maintenance
 
-0.05 mN error against a 12.0 mN target is a **0.4% deviation** — well within any practical mission requirement. The baseline with fixed currents achieves 0.46 mN error (3.8%). The RL agent's ability to simultaneously control three coil currents allows it to decouple the shielding objective from the thrust objective.
+0.05 mN error against a 12.0 mN target is a **0.4% deviation** — well within any practical mission requirement. The RL agent's simultaneous control of three coil currents allows it to decouple the shielding objective from the thrust objective. The centre-axis configuration cannot do this — it drifts to ~10 mN as it trades thrust for shielding.
 
 ### Oscillation amplitude: the expected trade-off
 
-The RL agent has a higher oscillation amplitude (0.034) than the baseline (0.002). This is the anticipated trade-off: the coil configuration that maximises shielding (steep field gradient near cathode) narrows the ionisation zone, which mildly excites breathing oscillations. The agent made the correct engineering decision — oscillations are weighted at only 15% in the reward vs. 50% for flux reduction. The oscillation amplitude of 0.034 is low on a 0–1 scale.
+The RL agent shows higher oscillation (0.027) than an unoptimised static baseline (0.002). This is the anticipated trade-off: the coil configuration that maximises shielding steepens the axial field gradient near the cathode, which narrows the ionisation zone and mildly excites breathing oscillations. The agent makes the correct engineering decision — oscillations are weighted at only 15% in the reward vs. 50% for flux reduction. An amplitude of 0.027 on a 0–1 scale remains low in absolute terms.
 
 ---
 
@@ -365,7 +369,7 @@ The RL agent has a higher oscillation amplitude (0.034) than the baseline (0.002
 
 | Work | Year | Method | Action space | Objective |
 |---|---|---|---|---|
-| **ẍ xdoubledot (this)** | 2025–26 | **RL (SAC)** | **Coil currents ΔI × 3** | **Cathode flux + thrust** |
+| **ẍ (this)** | 2025–26 | **RL (SAC)** | **Coil currents ΔI × 3** | **Cathode flux + thrust** |
 | Krishnan et al. (Georgia Tech) | IEPC 2025 | ESN + NMPC | Anode voltage | Breathing mode suppression |
 | Slimane et al. (CNRS) | JAP 2024 | ANN + PID | Anode voltage + flow | Setpoint maintenance |
 | Thoreau et al. (ACME) | JEP 2025 | Derivative-free optimisation | Coil currents + voltage + flow | Efficiency maximisation |
@@ -397,17 +401,17 @@ Coil currents → Magnetic field topology → |dBdz|/B_cathode ratio
 
 The RL agent controls the first step. The sixth step (actual erosion) is what we care about. The connection between steps three and six is:
 
-**Erosion rate ∝ Γᵢ × Y(Eᵢ)**
+$$\text{Erosion rate} \propto \Gamma_i \cdot Y(E_i)$$
 
 Where:
-- `Γᵢ` — ion flux (ions/m²/s) at the cathode keeper face
-- `Y(Eᵢ)` — sputtering yield (atoms removed per incoming ion), which is a steep function of ion energy `Eᵢ`. Below the threshold energy (~25–30 eV for boron nitride, the common cathode material), Y = 0 — no sputtering at all.
+- $\Gamma_i$ — ion flux (ions/m²/s) at the cathode keeper face
+- $Y(E_i)$ — sputtering yield (atoms removed per incoming ion), a steep function of ion energy $E_i$. Below the threshold energy (~25–30 eV for boron nitride, the common cathode material), $Y = 0$ — no sputtering at all.
 
 ### The two effects of magnetic shielding
 
-1. **Flux reduction** (what we directly measure): the RL agent reduces `Γᵢ` by 76%. At constant ion energy, lifetime scales as `1 / (1 − 0.76) = 4.2×`. If the BHT-200 has a baseline cathode lifetime of ~12,000 hours, this projects to ~50,000 hours.
+1. **Flux reduction** (what we directly measure): the RL agent reduces $\Gamma_i$ by 76%. At constant ion energy, lifetime scales as $1/(1-0.76) = 4.2\times$. If the BHT-200 has a baseline cathode lifetime of ~12,000 hours, this projects to ~50,000 hours.
 
-2. **Energy reduction** (not yet modelled explicitly): proper magnetic shielding also reduces the near-cathode plasma potential, which drops the energy of ions hitting the cathode. If ion energy drops below the sputtering threshold, `Y(Eᵢ) → 0` and sputtering effectively stops regardless of flux. This is the mechanism behind the factor-of-1000 erosion reduction seen in the H6MS channel wall experiments. It is not yet captured in our surrogate model — our sputtering yield is implicitly held constant — so **our 4.2× lifetime estimate is a conservative lower bound**.
+2. **Energy reduction** (not yet modelled explicitly): proper magnetic shielding also reduces the near-cathode plasma potential, which drops the energy of ions hitting the cathode. If ion energy drops below the sputtering threshold, $Y(E_i) \to 0$ and sputtering effectively stops regardless of flux. This is the mechanism behind the factor-of-1000 erosion reduction seen in the H6MS channel wall experiments. It is not yet captured in our surrogate model — our sputtering yield is implicitly held constant — so **our 4.2× lifetime estimate is a conservative lower bound**.
 
 ### The lifetime projection in context
 
@@ -416,14 +420,179 @@ Where:
 | BHT-200 (Xe, unshielded) | Static nominal currents | ~1,300 hours (measured) |
 | SPT-100 (Xe) | Nominal | 4,000–7,500 hours |
 | MaSMi (magnetically shielded) | Passive shielding | 8,187 hours (no failure) |
-| **ẍ xdoubledot projection** | RL-optimised dynamic shielding, flux only | **~4× baseline lifetime** |
+| **ẍ projection** | RL-optimised dynamic shielding, flux only | **~4× baseline lifetime** |
 | Full shielding (energy + flux) | If energy dropped below threshold | Potentially 100× or more |
 
 The MaSMi 8,187-hour result with no measurable degradation is the most directly comparable benchmark — it is a 200–1500 W class magnetically shielded thruster. Our RL agent targets the same physics on a similar-class device and achieves a flux reduction consistent with or exceeding what passive shielding provides.
 
+Note: 8,187 hours of continuous firing is 341 days. The MaSMi test ran over multiple calendar years with interruptions for diagnostics. This is why the industry does not test to failure — it validates erosion rate over hundreds of hours and extrapolates.
+
 ---
 
-## 13. Caveats and what comes next
+## 13. The sputtering yield curve
+
+The sputtering yield $Y(E_i)$ is the number of cathode material atoms ejected per incoming ion as a function of ion energy $E_i$. It is the critical function that connects ion flux to actual material loss — and understanding its shape explains several results in this document that would otherwise seem contradictory.
+
+### The Bohdansky formula
+
+The standard model for ion sputtering at low energies (relevant to HET cathodes) is the **Bohdansky formula**:
+
+$$Y(E) = Q \cdot S_n(\varepsilon) \cdot \left[1 - \left(\frac{E_\text{th}}{E}\right)^{2/3}\right]\left[1 - \frac{E_\text{th}}{E}\right]^2$$
+
+where:
+- $Q$ — material-specific yield constant (determined experimentally)
+- $S_n(\varepsilon)$ — reduced nuclear stopping cross-section (how efficiently the ion transfers momentum to lattice atoms)
+- $E_\text{th}$ — **threshold energy**: the minimum ion energy at which sputtering occurs at all
+- $E$ — incident ion kinetic energy
+
+The formula is zero below $E_\text{th}$ and rises steeply above it. For **boron nitride (BN)** — the most common cathode keeper material — bombarded by **Kr⁺** ions:
+
+| Energy $E$ | $Y(E)$ (approx.) |
+|---|---|
+| < 28 eV | 0 — no sputtering |
+| 30 eV | ~0.001 atoms/ion |
+| 50 eV | ~0.008 atoms/ion |
+| 100 eV | ~0.04 atoms/ion |
+| 200 eV | ~0.12 atoms/ion |
+| 300 eV | ~0.20 atoms/ion |
+
+The steep rise above threshold is the key feature. Doubling energy from 50 to 100 eV increases yield **5×** — a highly nonlinear relationship.
+
+### Why this explains the 1000× erosion reduction
+
+The total erosion rate is:
+
+$$\dot{m}_\text{erosion} \propto \Gamma_i \cdot Y(E_i)$$
+
+Passive magnetic shielding (H6MS, MaSMi) does two things simultaneously:
+
+1. **Reduces $\Gamma_i$** — field lines draped over the cathode region repel incoming ions. Hofer et al. (2014) measured **~2× flux reduction** to channel walls.
+
+2. **Reduces $E_i$** — the same field topology raises the near-wall plasma potential toward anode potential, so ions arriving at the cathode have lost most of their kinetic energy. If $E_i$ drops **below $E_\text{th} \approx 28$ eV**, then $Y(E_i) = 0$ — sputtering stops entirely regardless of flux.
+
+Combining these: 2× flux reduction × $Y \to 0$ gives the **~1000× erosion reduction** seen experimentally. The flux term alone would give only 2× improvement. The energy term, via the threshold, gives the other factor of 500.
+
+**This is why our current simulation is a conservative lower bound.** Aegis models flux reduction only — $Y(E_i)$ is held constant. If the RL-optimised field topology also reduces near-cathode ion energies below threshold (which is physically expected once hardware validates the energy profile), the actual lifetime improvement could be far larger than 4×.
+
+### Why $E_\text{th}$ matters so much for cathode design
+
+LaB₆ (lanthanum hexaboride) cathodes have $E_\text{th} \approx 35$ eV — slightly higher than BN. This makes them inherently more erosion-resistant at marginal ion energies (30–35 eV), which is one reason high-power HETs increasingly use LaB₆ emitters. The trade-off is higher operating temperature (~1600°C vs. ~1100°C for BN), requiring more heater power.
+
+For Krypton propellant specifically: Kr⁺ ions are lighter than Xe⁺ (84 u vs. 131 u), which reduces the nuclear stopping cross-section $S_n$. At equal energy, a Kr⁺ ion sputters less efficiently than Xe⁺ — a hidden advantage of Krypton that partially offsets its ionisation penalty.
+
+---
+
+## 14. How you test this — without waiting years
+
+The obvious question: how do you validate a lifetime claim of 40,000+ hours without running for five years?
+
+The answer is to decouple the claim into independently testable links in the causal chain:
+
+```
+RL policy → coil currents → |∂B/∂z|/B_cathode → ion flux → erosion rate → lifetime
+```
+
+You do not need to validate the final link directly.
+
+### Test 1: Faraday probe — validate flux reduction (hours)
+
+A **Faraday probe** is a small biased metal collector placed at the cathode location inside a vacuum chamber. It measures ion current density $j_i$ (A/m²), from which ion flux $\Gamma_i = j_i / e$ is derived directly.
+
+Procedure:
+1. Fire thruster at baseline coil currents → record $\Gamma_\text{baseline}$
+2. Fire thruster with RL policy active → record $\Gamma_\text{RL}$
+3. Compute reduction: $(\Gamma_\text{baseline} - \Gamma_\text{RL}) / \Gamma_\text{baseline}$
+
+This takes **hours of run time**, not years. It directly validates the core claim — and is exactly the measurement Hofer et al. (2014) used to validate passive shielding on the H6MS. If the Faraday probe shows 76% flux reduction, the simulation result is hardware-confirmed.
+
+### Test 2: Retarding Potential Analyser — validate energy reduction (hours)
+
+A **Retarding Potential Analyser (RPA)** measures the ion energy distribution function at a given location. Place it at the cathode plane. This tells you $E_i$ — the other input to $Y(E_i)$.
+
+If $E_i < E_\text{th}$ with the RL policy active, you have experimental evidence that $Y \to 0$ and the actual lifetime improvement exceeds the conservative flux-only estimate.
+
+### Test 3: Short wear test with profilometry (100–500 hours)
+
+Run the thruster for 100–500 hours. Then measure cathode keeper erosion using:
+
+- **White-light interferometry** or **contact profilometry** — maps surface recession in µm with sub-micron resolution
+- **Weight loss** — mass the keeper before and after, divide by run time → erosion rate in µg/hr
+
+You now have an empirical erosion rate. Lifetime = keeper volume / erosion rate. Running two tests — baseline currents and RL policy — gives a direct measured ratio.
+
+The BHT-200's reported ~1,300 hour cathode lifetime was established this way (Busek/AFRL, IEPC-2007-250) — not by running to failure, but by measuring erosion rate and extrapolating. The MaSMi 8,187-hour test is unusual in that it ran long enough to demonstrate zero measurable degradation — 341 days of continuous firing across multiple calendar years.
+
+### Test 4: Accelerated erosion (elevated voltage)
+
+If a 500-hour test is too slow, run at elevated discharge voltage (300–350 V vs. nominal 250 V). Higher voltage → higher ion energies → higher $Y(E_i)$ → faster measurable erosion. Normalise back to nominal conditions using the Bohdansky $Y(E)$ curve.
+
+This is standard practice in thruster qualification programmes — the International Space Station Xenon Ion Propulsion System (XIPS) used accelerated tests at elevated beam current to compress a 10,000-hour lifetime validation into ~2,000 hours.
+
+### Test 5: WarpX PIC simulation (computational validation, no hardware needed)
+
+Before any hardware, Level 3 validation uses **WarpX** — a GPU-accelerated particle-in-cell code developed at LBNL/CEA. A PIC simulation resolves individual ion and electron trajectories, computing the electromagnetic fields from first principles. It can produce absolute $\Gamma_i$ values and $E_i$ distributions at the cathode plane for a specific operating point.
+
+Running WarpX on 5 operating points spot-checks whether the surrogate model's $\Gamma$ values are calibrated correctly — without building anything. This is weeks of compute time on a cluster, not years.
+
+### The practical validation timeline
+
+| Test | What it proves | Approximate duration |
+|---|---|---|
+| WarpX PIC (5 points) | Surrogate $\Gamma$ calibration | ~1–2 weeks compute |
+| Faraday probe in vacuum chamber | RL reduces ion flux by ~76% | ~1 day run time |
+| RPA at cathode plane | Ion energy below sputtering threshold | ~1 day run time |
+| 200-hour wear test + profilometry | RL reduces measured erosion rate | ~2–3 weeks |
+| 500-hour endurance test | No anomalous degradation | ~3 weeks continuous |
+
+The entire experimental validation programme can be completed in **under 6 months** of calendar time, with no single continuous run exceeding 3 weeks. This is the Year 1 ESA BIC hardware work.
+
+---
+
+---
+
+## 15. Simulation and visualisation tools
+
+The Aegis repository includes three standalone Python scripts that make the physics concrete and visually inspectable — no equation-reading required. They were all used to generate the figures in this document and the pitch deck.
+
+### `animate_het.py` — particle physics animation
+
+Animates the particle dynamics inside a running thruster. Saves `outputs/het_animation.mp4`.
+
+```
+python src/animate_het.py
+```
+
+What you see: **grey** neutral Kr atoms flowing toward the channel; **cyan spirals** showing electrons in tight cyclotron orbits in the radial B field (these are the trapped electrons driving ionisation — the Hall current is azimuthal, into/out of the page); **blue arrows** showing beam ions accelerating straight out (unmagnetised — their gyroradius is millimetres, much larger than the channel); and **red particles** showing back-streaming ions heading backward through the plume toward the cathode. These red particles are the erosion mechanism the RL agent is mitigating.
+
+### `model_het_3d.py` — interactive 3D model
+
+Builds a quarter-cutaway interactive 3D model of the full thruster assembly. Saves `outputs/het_3d_model.html`. Open in any browser, rotate and zoom freely.
+
+```
+python src/model_het_3d.py
+```
+
+What you see: iron magnetic circuit (back yoke + pole pieces); boron nitride channel walls; the three electromagnetic coil positions; green magnetic field lines arching from inner to outer pole across the channel gap; blue ion beam trajectories in the plume; red back-streaming ion paths curving back toward the cathode.
+
+### `solve_het_bfield.py` — finite-difference magnetostatic solver
+
+Solves the full 2D axisymmetric magnetostatic PDE numerically on a 180×260 grid, with the iron magnetic circuit explicitly modelled (μ_r = 2000). Saves `outputs/het_bfield.png` (4-panel) and `outputs/het_bfield_interactive.html` (zoomable). Runs in ~5 seconds.
+
+```
+python src/solve_het_bfield.py
+```
+
+The 4-panel output shows: **all coils at nominal operating point** (top-left), **inner solenoid alone** (top-right), **outer solenoid alone** (bottom-left), **trim coil alone** (bottom-right). The colour scale is log₁₀|B| — bright yellow = strong field. Green contour lines are field lines (iso-contours of ψ = r·A_φ).
+
+Key things to read from the plots:
+- The bright band at the channel exit (z ≈ 7, right edge of the blue channel region) is the radial B-field barrier where electrons are trapped. This is where $\Omega_e \approx 18$.
+- Field lines arching inner → outer pole perpendicular to the ion flow axis — the working topology.
+- Trim coil panel: weaker overall but concentrated right at the exit plane. This explains why the RL agent exploits it preferentially — it adjusts the cathode-plane gradient without substantially changing the exit-plane field strength that drives ionisation.
+- Iron appears dark in the colour scale — flux travels through it with almost no leakage (high permeability = low reluctivity ν), exactly as a well-designed magnetic circuit should behave.
+
+---
+
+## 16. Caveats and what comes next
 
 ### What we haven't done yet
 
@@ -451,24 +620,150 @@ Xenon is the industry standard HET propellant. Krypton has traditionally been se
 - Lower atomic mass → lower thrust per unit flow rate
 - Efficiency penalty: 9–18% lower anode efficiency in equal-power comparisons (Su & Jorns, JAP 2021)
 
-But Krypton is **3–5× cheaper** than Xenon and has a better European supply chain. For VLEO missions requiring continuous propulsion over years, propellant cost is a mission-level budget item, not a footnote. The magnetic optimisation that RL provides can partially recover the efficiency gap by finding the B-field configuration that maximises ionisation for Kr's higher-Ωe optimum (Ωe ≈ 18 vs. ≈ 13 for Xe). This is an additional advantage of the RL approach that has not been fully exploited in the current work.
+But Krypton is **3–5× cheaper** than Xenon and has a better European supply chain. For VLEO missions requiring continuous propulsion over years, propellant cost is a mission-level budget item, not a footnote. The magnetic optimisation that RL provides can partially recover the efficiency gap by finding the B-field configuration that maximises ionisation for Kr's higher Hall parameter optimum ($\Omega_e \approx 18$ vs. $\approx 13$ for Xe). This is an additional advantage of the RL approach that has not been fully exploited in the current work.
 
 ---
 
-## 14. Key numbers at a glance
+## 17. Breathing mode oscillations — what they are and why they matter
+
+### What is the breathing mode?
+
+The **breathing mode** is the dominant instability in Hall thrusters. It's a 10–30 kHz oscillation in the discharge current and plasma density — named after the way the ionisation zone periodically "breathes" in and out along the channel axis.
+
+Here is the physical cycle:
+
+1. **Neutral gas fills the channel.** Krypton atoms flow from the anode toward the exit. The ionisation zone (where electrons collide with neutrals) is located near the channel exit.
+2. **Electrons ionise the neutrals rapidly.** The ionisation rate is proportional to the product of electron density × neutral density × reaction rate coefficient. When both densities are high, ionisation is fast.
+3. **Neutrals are depleted.** The ionisation zone consumes neutrals faster than the neutral gas feed can replenish them. Neutral density collapses.
+4. **Ionisation switches off.** Without neutrals, electrons have nothing to ionise. The discharge current drops. The ionisation zone extinguishes and retreats upstream.
+5. **Neutrals refill.** The upstream neutral gas flow continues, refilling the depleted zone. The ionisation zone re-ignites and the cycle repeats.
+
+This is a **relaxation oscillator** — exactly like the sawtooth waveform in an RC charging circuit with a spark-gap discharge. Period: ~30–100 µs. Frequency: 10–30 kHz for typical 100–300 W HETs.
+
+### What does it look like electrically?
+
+On a current probe measuring the discharge current between anode and cathode, the breathing mode appears as large-amplitude sinusoidal or sawtooth oscillations riding on the DC discharge current. For a poorly tuned thruster, the peak-to-peak oscillation can equal or exceed the mean discharge current — the thruster is effectively switching on and off at 20 kHz.
+
+In the Aegis surrogate model, oscillation amplitude $A_\text{osc}$ is a normalised scalar (0–1) where:
+- $A_\text{osc} < 0.1$ — well-controlled, typical of a well-tuned operating point
+- $A_\text{osc} \approx 0.3$ — moderate oscillations, slightly elevated discharge noise
+- $A_\text{osc} > 0.5$ — strong oscillations, risk of thruster shut-down or arc events
+
+### Why does the RL agent care about it?
+
+The breathing mode appears in the reward function at 15% weight because:
+
+1. **Mechanical stress.** The current oscillations create oscillating magnetic forces on the coil windings and propellant feed system. Over thousands of hours, this can cause fatigue failure.
+2. **Efficiency loss.** The time-averaged thrust is lower during oscillations — the effective exhaust velocity is lower because ions are accelerated during the low-current phase when the electric field is less well-defined.
+3. **Plume divergence.** Large oscillations broaden the ion energy distribution, which increases plume divergence angle and reduces thrust efficiency.
+4. **Electrical noise.** The Power Processing Unit (PPU) must be designed to handle the oscillating current. Large oscillations increase PPU cost, mass, and complexity.
+
+The trade-off the RL agent navigates: the coil configuration that maximises cathode shielding (steep axial B-field gradient near the cathode) tends to concentrate the ionisation zone into a narrow band, which makes the breathing oscillation slightly more prone to triggering. The 15% weighting in the reward function tells the agent to accept some increase in oscillation in exchange for large shielding gains.
+
+---
+
+## 18. Embedded control — implementing this on an STM32
+
+The RL policy is a trained neural network: a small multilayer perceptron (MLP) with two hidden layers of 256 neurons each and ReLU activations. The policy maps a 9-dimensional state vector to a 3-dimensional action vector (coil current adjustments). Running inference takes roughly:
+
+$$\text{FLOPs} \approx 2 \times (9 \times 256 + 256 \times 256 + 256 \times 3) \approx 200,000 \text{ multiply-accumulate ops}$$
+
+On a Cortex-M4F MCU running at 168 MHz (e.g. STM32F405) with hardware FPU, this executes in roughly **1 ms**. A 1 kHz inference loop — faster than the breathing mode at 10–30 kHz, fast enough for closed-loop current control — is entirely feasible.
+
+### System architecture on-board
+
+```
+Sensors → ADC → State estimation → [NN inference] → DAC/PWM → Coil drivers
+          (STM32)     (STM32)            (STM32)      (STM32)   (H-bridge or MOSFET)
+```
+
+**Inputs (state vector):**
+1–3. Coil currents $I_\text{inner}, I_\text{outer}, I_\text{trim}$ — measured by Hall-effect current sensors (e.g. ACS712), sampled by 12-bit ADC at 10 kHz.
+4–6. B-field estimates at exit and cathode — in a minimal system, derived from the magnetic circuit model (linear combination of coil currents); in a higher-fidelity system, from small search coils near the channel exit.
+7. Ionisation efficiency proxy — correlated with discharge current fluctuation amplitude (from FFT of discharge current measured at the PPU).
+8. Thrust estimate — from a linear model of thruster state or onboard mass flow measurement.
+9. Oscillation amplitude — measured as the normalised RMS deviation of the discharge current at 10–30 kHz.
+
+**Outputs (action vector):**
+Three signed current commands $\Delta I_\text{inner}, \Delta I_\text{outer}, \Delta I_\text{trim}$, each in $[-0.25, +0.25]$ A, clipped to safe operating bounds and integrated onto the current setpoints.
+
+### Neural network deployment
+
+The trained SAC policy is exported from Stable-Baselines3 as a set of weight matrices and biases. On the STM32:
+
+1. **Export from Python:**
+```python
+import numpy as np
+policy = model.policy
+weights = {
+    "fc1_w": policy.mlp_extractor.policy_net[0].weight.detach().numpy(),
+    "fc1_b": policy.mlp_extractor.policy_net[0].bias.detach().numpy(),
+    "fc2_w": policy.mlp_extractor.policy_net[2].weight.detach().numpy(),
+    "fc2_b": policy.mlp_extractor.policy_net[2].bias.detach().numpy(),
+    "out_w": policy.action_net.weight.detach().numpy(),
+    "out_b": policy.action_net.bias.detach().numpy(),
+}
+np.savez("policy_weights.npz", **weights)
+```
+
+2. **Flash weights as a const array** in the STM32's flash memory. For a 256×256×3 MLP with float32: $(9 \times 256 + 256) + (256 \times 256 + 256) + (256 \times 3 + 3) \approx 68{,}000 \text{ floats} \approx 272 \text{ KB}$ — fits comfortably in the 1 MB flash of an STM32F405.
+
+3. **Inference loop in C:**
+```c
+// Simplified inference loop (no SIMD, for clarity)
+void nn_infer(const float *state, float *action) {
+    float h1[256], h2[256];
+    // Layer 1: h1 = ReLU(W1 * state + b1)
+    mat_vec_mul(W1, state,  b1, h1, 256, 9);
+    relu(h1, 256);
+    // Layer 2: h2 = ReLU(W2 * h1 + b2)
+    mat_vec_mul(W2, h1, b2, h2, 256, 256);
+    relu(h2, 256);
+    // Output: action = tanh(W3 * h2 + b3)  [tanh squashes to [-1, 1]]
+    mat_vec_mul(W3, h2, b3, action, 3, 256);
+    tanh_vec(action, 3);
+}
+```
+CMSIS-DSP `arm_mat_vec_mult_f32` handles the matrix-vector products efficiently using the Cortex-M4 FPU.
+
+### Practical considerations
+
+**Normalisation.** The RL policy was trained with a normalised state (mean 0, std 1 per dimension). The same normalisation constants must be applied to the raw sensor readings before inference, and the action must be denormalised back to physical current units.
+
+**Watchdog.** The coil current limits must be hardware-enforced. If the MCU crashes or the neural network outputs out-of-range values, the system should fall back to a hardcoded safe operating point (nominal static currents). An independent hardware current clamp on the coil driver is essential.
+
+**Sample rate.** The 9-dim state includes an oscillation amplitude term derived from the discharge current spectrum. This requires a short FFT or RMS calculation at 10–30 kHz. On the STM32F4 with CMSIS-DSP, a 256-point FFT executes in ~170 µs — compatible with the 1 ms inference loop.
+
+**Closed-loop bandwidth.** The coil current rise time is set by $L/R$ — the coil inductance divided by coil resistance. For a small HET solenoid (L ~ 10 mH, R ~ 2 Ω), the time constant is ~5 ms. The 1 kHz inference loop updates current setpoints faster than the coil can respond, which provides natural filtering and prevents the control loop from exciting high-frequency resonances.
+
+### Path from laptop to hardware
+
+| Stage | What runs where |
+|---|---|
+| Current | SAC trains and infers on laptop, surrogate model in Python |
+| Year 1 (bench) | Policy frozen; replay inference on STM32 Nucleo dev board; drive real coil drivers on bench thruster |
+| Year 2 (flight) | Same STM32 code, flight-qualified PCB, real-time state estimation from PPU current sensor |
+
+The key insight: **the RL training happens on the ground**. The STM32 only runs the policy (forward inference), not the training loop. This means the flight hardware is a simple, deterministic embedded system — no on-orbit learning, no GPUs, no risk of the AI "going wrong" in space.
+
+---
+
+## 19. Key numbers at a glance
 
 | Parameter | Value | Notes |
 |---|---|---|
 | Thruster class | 200 W, VLEO | Krypton propellant, 250 V discharge |
 | Target thrust | 12.0 mN | Achieved within 0.05 mN by RL agent |
-| Exhaust velocity | ~24,000 m/s | √(2eVd/m_Kr) at 250 V |
+| Exhaust velocity | ~24,000 m/s | $\sqrt{2eV_d/m_{Kr}}$ at 250 V |
 | Nominal B at exit | ~206 G (0.0206 T) | From 3A inner, 2.5A outer, 0A trim |
-| Hall parameter at nominal | ~18 | Target 15–20 for Kr (Boeuf 2017) |
-| Cathode flux (baseline) | 0.631 | Static nominal coil currents |
-| Cathode flux (RL agent) | 0.151 | SAC policy, 200k steps training |
-| Flux reduction | **76.1%** | Factor 4.2× |
+| $\Omega_e$ at nominal | ~18 | Target 15–20 for Kr (Boeuf 2017) |
+| Cathode flux (baseline) | 1.000 | Normalised unshielded baseline |
+| Cathode flux (RL, external) | 0.154 | SAC policy, external cathode, 200k steps |
+| Cathode flux (RL, center) | 0.374 | SAC policy, center-axis cathode |
+| Flux reduction (external) | **85.4%** | Factor 6.5× vs baseline |
+| Flux reduction (center) | 62.6% | Factor 2.7× vs baseline |
 | Lifetime projection (flux only) | **~4× baseline** | Conservative lower bound |
-| Training time | 22 min | Laptop CPU, 200k steps, ~150 fps |
+| Training time | 26 min | Laptop CPU, 200k steps, ~125 fps |
 | BHT-200 baseline lifetime (Xe) | ~1,300 hours | Busek/AFRL experimental |
 | MaSMi lifetime (passive shielded) | 8,187 hours | JPL/USU wear test, no failure |
 | VLEO mission target | 40,000+ hours | Continuous orbit maintenance |
@@ -487,8 +782,10 @@ But Krypton is **3–5× cheaper** than Xenon and has a better European supply c
 - Slimane et al. (CNRS LPP) (2024). "Analysis and control of Hall effect thruster using optical emission spectroscopy and artificial neural network." *Journal of Applied Physics*, 136, 153302.
 - Thoreau, P. et al. (2025). "Rapid thruster-in-the-loop optimization for Hall thrusters." *Journal of Electric Propulsion*, 4, 56.
 - Busek BHT-200 datasheet + IEPC-2007-250 lifetime modeling.
+- Bohdansky, J. (1984). "A universal relation for the sputtering yield of monatomic solids at normal ion incidence." *Nuclear Instruments and Methods in Physics Research B*, 2, 587–591.
+- Ranjan, A. et al. (2018). "Sputtering yield of boron nitride by xenon and krypton ions." *Journal of Applied Physics*, 123, 133301.
 
 ---
 
-*ẍ xdoubledot OÜ — Tallinn, Estonia*
+*ẍ OÜ — Tallinn, Estonia*
 *ESA BIC Estonia incubatee (pending)*

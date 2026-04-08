@@ -1,13 +1,10 @@
-# ẍ xdoubledot
+# xdoubledot.space
 
-AI-powered Hall Effect Thrusters for VLEO.
+Website for xdoubledot — VLEO Hall Effect Thruster startup.
 
-Live at: [maxsimmonds.engineer/xdoubledot](https://maxsimmonds.engineer/xdoubledot)
+## Deployment
+GitHub Pages from gh-pages branch.
+Custom domain: xdoubledot.space
 
-## Contents
-- `index.html` — company landing page
-- `pitch-deck.html` — investor pitch deck
-- `docs/` — technical and business documentation
-- `assets/` — images
-
-Aegis source code is in a separate private repository.
+## Note
+A copy is also hosted at maxsimmonds.engineer/xdoubledot (legacy VC link — do not remove until ~May 2026).

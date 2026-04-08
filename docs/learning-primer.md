@@ -1,9 +1,9 @@
 ---
-layout: default
-title: ẍ xdoubledot — Learning Primer
+layout: xdoubledot
+title: Learning Primer
 ---
 
-# ẍ xdoubledot — Learning Primer
+# Learning Primer
 ## Everything you need to understand this project, from scratch
 
 *For: technically literate people (comfortable with maths, coding, engineering) with no prior knowledge of plasma physics or RL.*
@@ -301,6 +301,93 @@ Work through them roughly in order — each one builds on the last. You don't ne
 
 ---
 
+---
+
+## Topic 14 — Aegis Simulation & Visualisation Tools
+
+**What they are.** Three standalone Python scripts in `src/` that let you see the physics — particle motion, 3D geometry, and magnetic field topology — without reading equations.
+
+**Why they matter here.** The RL agent acts on an abstract state vector (9 numbers). These tools make that state concrete. Before tuning reward functions or interpreting training curves, run these first and build a visual mental model of what the thruster is actually doing.
+
+---
+
+### `src/animate_het.py` — Particle Physics Animation
+
+Animates the particle dynamics inside a running Hall thruster: neutral propellant atoms drifting in, electrons spiralling on cyclotron orbits, beam ions accelerating out, and back-streaming ions (the cathode erosion source) travelling backward through the plume.
+
+**Run it:**
+```
+python src/animate_het.py
+```
+Saves `outputs/het_animation.mp4` (or `.gif` if ffmpeg is unavailable). Runs in ~10–20 seconds.
+
+**What to look for:**
+- **Grey particles** — neutral Kr atoms flowing from left (anode) toward the channel exit. They're slow and straight.
+- **Cyan spirals** — electrons undergoing cyclotron motion in the radial B field. The tight spirals show they are magnetised (Hall parameter Ω_e >> 1). They drift azimuthally (into/out of the screen) via E×B drift.
+- **Blue arrows** — beam ions accelerated axially by the anode–cathode voltage (~250 V). They travel in straight lines because they're heavy (unmagnetised — Ω_ion << 1).
+- **Red particles** — back-streaming ions travelling backward through the plume toward the cathode. These are the erosion source that the RL agent is trying to redirect. Watch how they concentrate near the channel exit region.
+
+The animation shows *why* magnetic topology matters: electrons are trapped by B and drive ionisation, while ions pass straight through. Redirecting back-streamers requires changing the field gradient at the cathode location — exactly what the trim coil does.
+
+---
+
+### `src/model_het_3d.py` — Interactive 3D Thruster Model
+
+Builds a quarter-cutaway interactive 3D model of the thruster showing all structural components, coil positions, magnetic field lines, and ion beam trajectories.
+
+**Run it:**
+```
+python src/model_het_3d.py
+```
+Saves `outputs/het_3d_model.html`. Open in any browser. Use mouse to rotate/zoom.
+
+**What to look for:**
+- **Blue-grey annular structure** — the iron magnetic circuit: back yoke (the flat disc at the rear), inner pole piece (central cylinder), outer pole piece (outer ring). Iron's high permeability (μ_r ~ 2000) guides flux from the coils to the channel gap.
+- **White surfaces** — boron nitride (BN) ceramic walls forming the discharge channel. BN is the material whose sputtering threshold (E_th ≈ 28 eV) determines the erosion rate.
+- **Orange/yellow rings** — the three electromagnetic coils: inner solenoid (innermost), outer solenoid (outermost), trim coil (small ring in the back yoke). Note all three are axisymmetric rings — there's no X/Y/Z asymmetry.
+- **Green field lines** — magnetic flux arching from inner pole tip to outer pole tip across the channel gap. These are the physical field lines the electrons follow.
+- **Blue cones** — ion beam trajectories leaving the exit plane. The plume divergence angle (θ_plume ~ 25°) appears here.
+- **Red curves** — back-streaming ion trajectories curving back toward the cathode. In the `external cathode` configuration, the goal is to bend these away.
+
+---
+
+### `src/solve_het_bfield.py` — Finite-Difference Magnetostatic Solver
+
+Solves the 2D axisymmetric magnetostatic PDE for the HET's actual B-field topology. Not a schematic — a real numerical solution of Maxwell's equations with the iron magnetic circuit modelled explicitly.
+
+**Run it:**
+```
+python src/solve_het_bfield.py
+```
+Saves two outputs in ~5 seconds:
+- `outputs/het_bfield.png` — 4-panel static figure
+- `outputs/het_bfield_interactive.html` — zoomable interactive version
+
+**What it solves.** The governing equation is:
+
+$$\frac{\partial}{\partial r}\!\left(\nu \frac{\partial A}{\partial r}\right) + \frac{\partial}{\partial z}\!\left(\nu \frac{\partial A}{\partial z}\right) + \frac{\nu}{r}\frac{\partial A}{\partial r} - \frac{\nu A}{r^2} = -J_\phi$$
+
+where $A_\phi(r,z)$ is the azimuthal magnetic vector potential, $\nu = 1/(\mu_r \mu_0)$ is the reluctivity (low in iron, high in air), and $J_\phi$ is the coil current density. From $A_\phi$ you get: $B_r = -\partial A/\partial z$, $B_z = A/r + \partial A/\partial r$. Field lines are contours of $\psi = r A_\phi$.
+
+**Reading the 4-panel output:**
+
+| Panel | Coils active | What it shows |
+|---|---|---|
+| Top-left | All three (nominal) | The operating field: bright exit-plane barrier, arching field lines |
+| Top-right | Inner solenoid only | Field concentrated near the axis and inner pole |
+| Bottom-left | Outer solenoid only | Fills the outer gap; note the opposite winding direction reinforces the radial barrier |
+| Bottom-right | Trim coil only | Much weaker but concentrated exactly at the exit plane — this is why the RL agent uses it for fine-tuning |
+
+**Key features to find:**
+- **Bright yellow band at z ≈ 7** — the radial B-field barrier at the channel exit. This is what the Ω_e equation cares about. Optimal Ω_e ~ 18 for Kr occurs here.
+- **Field lines arching inner→outer pole** — the working flux path. Lines that are perpendicular to the channel axis at the gap = maximum electron trapping.
+- **Dark region inside the iron** — the iron almost disappears in the log scale because it guides flux with very little leakage. This is the reluctance circuit working.
+- **Trim coil panel** — notice the field is weakest of all three but peaks right at the exit/cathode plane. High leverage on the shielding gradient with low impact on the main ionisation zone.
+
+**Connection to Aegis RL:** The `MagneticCircuit` class in `het_env.py` uses linear coupling coefficients $K_\text{exit}$, $K_\text{cath}$, $K_\text{grad}$ to map coil currents to B field. The FD solver *validates* those coefficients — if the field line topology from the solver matches what the linear model predicts, the surrogate is trustworthy.
+
+---
+
 ## Suggested Learning Order
 
 If you have **2 weeks** to get up to speed:
@@ -332,4 +419,4 @@ If you just need the minimum to follow a conversation:
 
 ---
 
-*ẍ xdoubledot OÜ — Tallinn, Estonia*
+*ẍ OÜ — Tallinn, Estonia*

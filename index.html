@@ -1,10 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ẍ xdoubledot — AI-Powered Hall Effect Thrusters</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>ẍ — AI-Powered Hall Effect Thrusters</title>
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cstyle%3E text %7B fill: %2300f2ff; font-family: 'Cormorant Garamond', serif; font-style: italic; font-weight: 600; %7D @media (prefers-color-scheme: light) %7B text %7B fill: %23008080; %7D %7D %3C/style%3E%3Ctext y='0.8em' x='50%25' text-anchor='middle' font-size='90'%3Eẍ%3C/text%3E%3C/svg%3E">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@1,600&display=swap"
+        rel="stylesheet">
     <style>
         :root {
             --accent: #00d4ff;
@@ -13,15 +18,22 @@
             --surface-light: #12141a;
             --text: #ffffff;
             --text-muted: #8899aa;
-            --border: rgba(255,255,255,0.08);
+            --border: rgba(255, 255, 255, 0.08);
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
             background: var(--bg);
             color: var(--text);
             min-height: 100vh;
         }
+
         header {
             padding: 40px 80px;
             display: flex;
@@ -29,14 +41,28 @@
             justify-content: space-between;
             border-bottom: 1px solid var(--border);
         }
+
         .logo {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 2rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #00d4ff, #0088ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            display: inline-block;
+            position: relative;
+            font-family: 'Cormorant Garamond', 'Times New Roman', serif;
+            font-style: italic;
+            font-weight: 600;
+            color: var(--accent);
         }
+
+        .logo::before {
+            content: '¨';
+            position: absolute;
+            top: 0.08em;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.65em;
+            font-style: normal;
+            font-family: 'Times New Roman', serif;
+            color: var(--accent);
+        }
+
         nav a {
             color: var(--text-muted);
             text-decoration: none;
@@ -45,11 +71,16 @@
             letter-spacing: 0.05em;
             transition: color 0.2s;
         }
-        nav a:hover { color: var(--accent); }
+
+        nav a:hover {
+            color: var(--accent);
+        }
+
         .hero {
             padding: 100px 80px 80px;
             max-width: 900px;
         }
+
         .hero h1 {
             font-family: 'Space Grotesk', sans-serif;
             font-size: 3.5rem;
@@ -57,7 +88,11 @@
             line-height: 1.15;
             margin-bottom: 24px;
         }
-        .hero h1 span { color: var(--accent); }
+
+        .hero h1 span {
+            color: var(--accent);
+        }
+
         .hero p {
             font-size: 1.15rem;
             color: var(--text-muted);
@@ -65,7 +100,13 @@
             max-width: 620px;
             margin-bottom: 48px;
         }
-        .cta-group { display: flex; gap: 16px; flex-wrap: wrap; }
+
+        .cta-group {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
         .btn {
             padding: 14px 28px;
             border-radius: 6px;
@@ -75,17 +116,27 @@
             transition: all 0.2s;
             display: inline-block;
         }
+
         .btn-primary {
             background: var(--accent);
             color: #000;
         }
-        .btn-primary:hover { background: #4de8ff; }
+
+        .btn-primary:hover {
+            background: #4de8ff;
+        }
+
         .btn-secondary {
             border: 1px solid var(--border);
             color: var(--text);
             background: var(--surface);
         }
-        .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+        .btn-secondary:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
         .stats {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -95,11 +146,13 @@
             border-bottom: 1px solid var(--border);
             margin: 0 0 80px;
         }
+
         .stat {
             background: var(--bg);
             padding: 40px 80px;
             text-align: left;
         }
+
         .stat-value {
             font-family: 'Space Grotesk', sans-serif;
             font-size: 2.2rem;
@@ -107,10 +160,16 @@
             color: var(--accent);
             margin-bottom: 6px;
         }
-        .stat-label { font-size: 0.85rem; color: var(--text-muted); }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
         .section {
             padding: 0 80px 80px;
         }
+
         .section h2 {
             font-family: 'Space Grotesk', sans-serif;
             font-size: 1.1rem;
@@ -119,6 +178,7 @@
             color: var(--text-muted);
             margin-bottom: 32px;
         }
+
         .cards {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -128,28 +188,36 @@
             border-radius: 8px;
             overflow: hidden;
         }
+
         .card {
             background: var(--surface);
             padding: 32px;
         }
+
         .card h3 {
             font-family: 'Space Grotesk', sans-serif;
             font-size: 1rem;
             font-weight: 600;
             margin-bottom: 8px;
         }
+
         .card p {
             font-size: 0.9rem;
             color: var(--text-muted);
             line-height: 1.7;
             margin-bottom: 20px;
         }
+
         .card a {
             font-size: 0.85rem;
             color: var(--accent);
             text-decoration: none;
         }
-        .card a:hover { text-decoration: underline; }
+
+        .card a:hover {
+            text-decoration: underline;
+        }
+
         .tag {
             display: inline-block;
             padding: 3px 10px;
@@ -160,9 +228,22 @@
             letter-spacing: 0.08em;
             margin-bottom: 12px;
         }
-        .tag-live { background: rgba(0,212,255,0.15); color: var(--accent); }
-        .tag-draft { background: rgba(255,255,255,0.06); color: var(--text-muted); }
-        .tag-private { background: rgba(255,107,107,0.12); color: #ff8080; }
+
+        .tag-live {
+            background: rgba(0, 212, 255, 0.15);
+            color: var(--accent);
+        }
+
+        .tag-draft {
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-muted);
+        }
+
+        .tag-private {
+            background: rgba(255, 107, 107, 0.12);
+            color: #ff8080;
+        }
+
         footer {
             padding: 40px 80px;
             border-top: 1px solid var(--border);
@@ -172,95 +253,126 @@
             color: var(--text-muted);
             font-size: 0.85rem;
         }
-        footer a { color: var(--text-muted); text-decoration: none; }
-        footer a:hover { color: var(--accent); }
+
+        footer a {
+            color: var(--text-muted);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            color: var(--accent);
+        }
     </style>
 </head>
+
 <body>
 
-<header>
-    <div class="logo">ẍ xdoubledot</div>
-    <nav>
-        <a href="pitch-deck.html">Pitch Deck</a>
-        <a href="docs/explainer.html">Technical Docs</a>
-        <a href="mailto:info@x-double-dot.space">Contact</a>
-    </nav>
-</header>
+    <header>
+        <div class="logo" style="font-size:3rem;">x</div>
+        <nav>
+            <a href="pitch-deck.html">Pitch Deck</a>
+            <a href="docs/explainer.html">Technical Docs</a>
+            <a href="mailto:maxsimmonds1337@gmail.com">Contact</a>
+        </nav>
+    </header>
 
-<div class="hero">
-    <h1>Building the engine of<br><span>sovereign space infrastructure</span></h1>
-    <p>AI-powered Hall Effect Thrusters for Very Low Earth Orbit. Krypton-native, ITAR-free, designed from the ground up for continuous VLEO drag compensation.</p>
-    <div class="cta-group">
-        <a href="pitch-deck.html" class="btn btn-primary">View Pitch Deck</a>
-        <a href="docs/explainer.html" class="btn btn-secondary">Technical Explainer</a>
+    <div class="hero">
+        <h1>Building the engine of<br><span>sovereign space infrastructure</span></h1>
+        <p>AI-powered Hall Effect Thrusters for Very Low Earth Orbit. Krypton-native, ITAR-free, designed from the
+            ground up for continuous VLEO drag compensation.</p>
+        <div class="cta-group">
+            <a href="pitch-deck.html" class="btn btn-primary">View Pitch Deck</a>
+            <a href="docs/explainer.html" class="btn btn-secondary">Technical Explainer</a>
+        </div>
     </div>
-</div>
 
-<div class="stats">
-    <div class="stat">
-        <div class="stat-value">76%</div>
-        <div class="stat-label">Cathode flux reduction in simulation</div>
+    <div class="stats">
+        <div class="stat">
+            <div class="stat-value">85%</div>
+            <div class="stat-label">Cathode flux reduction in simulation</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">4×+</div>
+            <div class="stat-label">Projected lifetime extension</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">41/41</div>
+            <div class="stat-label">Validation tests passing — 26 vs published data, 15 vs live HallThruster.jl
+                simulation (Marks 2023)</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">TRL 2–3</div>
+            <div class="stat-label">Current maturity — simulation validated</div>
+        </div>
     </div>
-    <div class="stat">
-        <div class="stat-value">4×+</div>
-        <div class="stat-label">Projected lifetime extension</div>
-    </div>
-    <div class="stat">
-        <div class="stat-value">52/52</div>
-        <div class="stat-label">Validation tests passing</div>
-    </div>
-    <div class="stat">
-        <div class="stat-value">TRL 2–3</div>
-        <div class="stat-label">Current maturity — simulation validated</div>
-    </div>
-</div>
 
-<div class="section">
-    <h2>Resources</h2>
-    <div class="cards">
-        <div class="card">
-            <span class="tag tag-live">Live</span>
-            <h3>Pitch Deck</h3>
-            <p>Full investor deck — problem, solution, Aegis software, market, competitive landscape, team, and ask.</p>
-            <a href="pitch-deck.html">View deck →</a>
-        </div>
-        <div class="card">
-            <span class="tag tag-live">Live</span>
-            <h3>Technical Explainer</h3>
-            <p>Deep-dive on HET physics, cathode erosion, magnetic shielding, reinforcement learning, and our simulation results.</p>
-            <a href="docs/explainer.html">Read explainer →</a>
-        </div>
-        <div class="card">
-            <span class="tag tag-live">Live</span>
-            <h3>Learning Primer</h3>
-            <p>Curriculum for understanding everything behind Aegis — plasma physics, RL, magnetic circuits, Krypton propellant.</p>
-            <a href="docs/learning-primer.html">Start learning →</a>
-        </div>
-        <div class="card">
-            <span class="tag tag-draft">Draft</span>
-            <h3>Business Plan Gap Analysis</h3>
-            <p>Comparison against ESA BIC-accepted plans — what we have, what we're building, what needs decisions.</p>
-            <a href="docs/business-plan-gap.html">Read analysis →</a>
-        </div>
-        <div class="card">
-            <span class="tag tag-draft">Draft</span>
-            <h3>Financial Projections</h3>
-            <p>5-year P&L model, use-of-funds breakdown, and milestone gates. Estimates — under review.</p>
-            <a href="docs/financial-projections.html">View projections →</a>
-        </div>
-        <div class="card">
-            <span class="tag tag-private">Private</span>
-            <h3>Aegis Source Code</h3>
-            <p>Physics-informed Gymnasium environment, SAC training pipeline, and validation test suite.</p>
-            <a href="https://github.com/maxsimmonds1337/Aegis" target="_blank">View on GitHub →</a>
+    <div class="section">
+        <h2>Resources</h2>
+        <div class="cards">
+            <div class="card">
+                <span class="tag tag-live">Live</span>
+                <h3>Pitch Deck</h3>
+                <p>Full investor deck — problem, solution, Aegis software, market, competitive landscape, team, and ask.
+                </p>
+                <a href="pitch-deck.html">View deck →</a>
+            </div>
+            <div class="card">
+                <span class="tag tag-live">Live</span>
+                <h3>Technical Explainer</h3>
+                <p>Deep-dive on HET physics, cathode erosion, magnetic shielding, reinforcement learning, and our
+                    simulation results.</p>
+                <a href="docs/explainer.html">Read explainer →</a>
+            </div>
+            <div class="card">
+                <span class="tag tag-live">Live</span>
+                <h3>Learning Primer</h3>
+                <p>Curriculum for understanding everything behind Aegis — plasma physics, RL, magnetic circuits, Krypton
+                    propellant.</p>
+                <a href="docs/learning-primer.html">Start learning →</a>
+            </div>
+            <div class="card">
+                <span class="tag tag-live">Live</span>
+                <h3>PPU Design</h3>
+                <p>Preliminary design of the Power Processing Unit: 250V discharge supply, coil drivers, keeper
+                    ignition, STM32 control, radiation tolerance, and mass budget.</p>
+                <a href="docs/ppu-design.html">Read design →</a>
+            </div>
+            <div class="card">
+                <span class="tag tag-live">Live</span>
+                <h3>Validation Methodology</h3>
+                <p>How we know the simulation is trustworthy — Level 1 (literature), Level 2 (HallThruster.jl), Level 3
+                    (WarpX PIC), and Level 4 (bench hardware) test suites.</p>
+                <a href="docs/validation.html">Read validation →</a>
+            </div>
+            <div class="card">
+                <span class="tag tag-live">Live</span>
+                <h3>Technical Manual</h3>
+                <p>Developer guide: environment API, training pipeline, configuration, running the test suite, and the
+                    sim-to-real transfer plan.</p>
+                <a href="docs/manual.html">Read manual →</a>
+            </div>
+            <div class="card">
+                <span class="tag tag-live">Live</span>
+                <h3>HET Hardware Design</h3>
+                <p>Full hardware design reference: magnetic circuit, BN discharge channel, coil geometry, hollow
+                    cathode, propellant feed, materials, and manufacturing notes for the 200W Kr thruster.</p>
+                <a href="docs/het-design.html">Read design →</a>
+            </div>
+            <div class="card">
+                <span class="tag tag-private">Private</span>
+                <h3>Aegis Source Code</h3>
+                <p>Physics-informed Gymnasium environment, SAC training pipeline, and validation test suite.</p>
+                <a href="https://github.com/maxsimmonds1337/Aegis" target="_blank">View on GitHub →</a>
+            </div>
         </div>
     </div>
-</div>
 
-<footer>
-    <div>ẍ xdoubledot OÜ · Tallinn, Estonia · <a href="mailto:info@x-double-dot.space">info@x-double-dot.space</a></div>
-    <div><a href="https://maxsimmonds.engineer">maxsimmonds.engineer</a></div>
-</footer>
+    <footer>
+        <div><span class="logo" style="font-size:1.1rem;vertical-align:middle;">x</span> OÜ · Tallinn, Estonia · <a
+                href="mailto:maxsimmonds1337@gmail.com">maxsimmonds1337@gmail.com</a></div>
+        <div><a href="https://xdoubledot.space">xdoubledot.space</a></div>
+    </footer>
 
 </body>
+
 </html>
