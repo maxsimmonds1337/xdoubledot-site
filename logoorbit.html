@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ẍ — orbit</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; background: #000; overflow: hidden; }
+        canvas { display: block; cursor: pointer; }
+        #hint {
+            position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
+            color: rgba(0,212,255,0.3); font-family: Inter, sans-serif; font-size: 12px;
+            letter-spacing: 0.12em; text-transform: uppercase; pointer-events: none;
+            transition: opacity 0.5s;
+        }
+    </style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="hint">click to replay</div>
+<script>
+const canvas = document.getElementById('c');
+const ctx    = canvas.getContext('2d');
+const dpr    = window.devicePixelRatio || 1;
+const ACCENT = '#00d4ff';
+
+// ── Timing ────────────────────────────────────────────────────────────
+const T_ORBIT  = 3600;   // ms orbiting + spiralling in
+const T_SETTLE = 1100;   // ms snapping to final position
+const T_REST   = 2400;   // ms resting before loop
+const T_LOOP   = T_ORBIT + T_SETTLE + T_REST;
+
+// ── Easing ────────────────────────────────────────────────────────────
+const easeInOut  = t => t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+const easeOut3   = t => 1 - Math.pow(1-t, 3);
+const easeOutBack = t => {
+    const c1=1.70158, c3=c1+1;
+    return 1 + c3*Math.pow(t-1,3) + c1*Math.pow(t-1,2);
+};
+
+// ── Resize ────────────────────────────────────────────────────────────
+function resize() {
+    canvas.width  = window.innerWidth  * dpr;
+    canvas.height = window.innerHeight * dpr;
+    canvas.style.width  = window.innerWidth  + 'px';
+    canvas.style.height = window.innerHeight + 'px';
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ── Trail history ─────────────────────────────────────────────────────
+const TRAIL = 28;
+const hist  = [[], []];
+
+// ── Animation clock ───────────────────────────────────────────────────
+let epoch = null;   // timestamp of last restart
+let rafId = null;
+
+function restart() {
+    hist[0].length = 0;
+    hist[1].length = 0;
+    epoch = null;   // reset on next frame
+}
+canvas.addEventListener('click', restart);
+
+// ── Main draw ─────────────────────────────────────────────────────────
+function frame(ts) {
+    rafId = requestAnimationFrame(frame);
+
+    if (!epoch) epoch = ts;
+    const loopT = (ts - epoch) % T_LOOP;
+
+    // Clear history at loop start
+    if (loopT < 60) { hist[0].length = 0; hist[1].length = 0; }
+
+    const W  = canvas.width,  H  = canvas.height;
+    const CX = W * 0.5,       CY = H * 0.52;   // slightly above true centre
+
+    // ── Font & metrics ──
+    const FS = Math.min(W, H) * 0.30;
+    ctx.font = `italic 600 ${FS}px 'Cormorant Garamond', serif`;
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'alphabetic';
+    const m       = ctx.measureText('x');
+    const ascent  = m.actualBoundingBoxAscent  || FS * 0.52;
+
+    // Final dot positions (where the diaeresis sits)
+    const sep    = (m.width) * 0.215;
+    const dotY   = CY - ascent - FS * 0.065;
+    const TARGET = [
+        { x: CX - sep, y: dotY },
+        { x: CX + sep, y: dotY },
+    ];
+
+    const DOT_R = FS * 0.040;
+
+    // ── Orbit parameters ──
+    const R0 = Math.min(W, H) * 0.29;    // starting orbit radius
+    const R1 = Math.min(W, H) * 0.085;   // ending orbit radius before settle
+
+    const orbitP = Math.min(loopT / T_ORBIT, 1.0);
+    const R      = R0 - (R0 - R1) * easeInOut(orbitP);
+    // Speed: start fast, slow toward end
+    const speedFactor = 1 - easeInOut(orbitP) * 0.5;
+    // Total angle swept (integrate variable speed)
+    const theta = orbitP * Math.PI * 3.6 * speedFactor;   // ≈1.8 full rotations
+
+    // Two dots, 162° apart, orbiting clockwise (canvas y-down)
+    const a1 = -Math.PI * 0.5 + theta;
+    const a2 = a1 + Math.PI * 0.9;
+
+    const orbitPos = a => ({ x: CX + Math.cos(a)*R, y: CY + Math.sin(a)*R });
+    const P1_orb   = orbitPos(a1);
+    const P2_orb   = orbitPos(a2);
+
+    // ── Settle ──
+    const settleRaw = loopT > T_ORBIT
+        ? Math.min((loopT - T_ORBIT) / T_SETTLE, 1.0)
+        : 0;
+    const settleE = settleRaw > 0 ? easeOutBack(settleRaw) : 0;
+
+    const lerp = (a, b, t) => a + (b-a)*t;
+    const P1 = {
+        x: lerp(P1_orb.x, TARGET[0].x, settleE),
+        y: lerp(P1_orb.y, TARGET[0].y, settleE),
+    };
+    const P2 = {
+        x: lerp(P2_orb.x, TARGET[1].x, settleE),
+        y: lerp(P2_orb.y, TARGET[1].y, settleE),
+    };
+
+    const orbiting = settleRaw === 0;
+    const settling = settleRaw > 0 && settleRaw < 1;
+    const atRest   = settleRaw >= 1;
+
+    // ── Background ──
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+
+    // Ambient glow (centred on letter, grows brighter as dots settle)
+    const ambA = 0.025 + 0.045 * easeOut3(settleRaw);
+    const amb  = ctx.createRadialGradient(CX, CY, 0, CX, CY, FS * 1.4);
+    amb.addColorStop(0, `rgba(0,180,255,${ambA})`);
+    amb.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = amb; ctx.fillRect(0, 0, W, H);
+
+    // ── Orbit ring (faint dashed circle, fades out during settle) ──
+    const ringA = orbiting
+        ? 0.07 * Math.min(1, loopT / 500) * (1 - Math.pow(orbitP, 4))
+        : 0;
+    if (ringA > 0.003) {
+        ctx.save();
+        ctx.strokeStyle = `rgba(0,212,255,${ringA})`;
+        ctx.lineWidth   = 0.5 * dpr;
+        ctx.setLineDash([5*dpr, 10*dpr]);
+        ctx.beginPath(); ctx.arc(CX, CY, R, 0, Math.PI*2); ctx.stroke();
+        ctx.setLineDash([]); ctx.restore();
+    }
+
+    // ── Trails ──
+    const trailA = orbiting ? 0.10 : 0;
+    hist[0].push({...P1}); hist[1].push({...P2});
+    if (hist[0].length > TRAIL) { hist[0].shift(); hist[1].shift(); }
+
+    if (trailA > 0) {
+        [hist[0], hist[1]].forEach(h => {
+            h.forEach((p, i) => {
+                const a = (i / h.length) * trailA;
+                dot(p.x, p.y, DOT_R * (i/h.length) * 0.7, a);
+            });
+        });
+    }
+
+    // ── The x ──
+    const xA = Math.min(loopT / 700, 1.0);
+    ctx.save();
+    ctx.font = `italic 600 ${FS}px 'Cormorant Garamond', serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = `rgba(0,212,255,${xA * 0.82})`;
+    ctx.fillText('x', CX, CY);
+    ctx.restore();
+
+    // ── Dots ──
+    const dotA = Math.min(loopT / 350, 1.0);
+
+    // Extra pulse when they snap home
+    const snapPulse = atRest ? 1 + 0.18 * Math.exp(-6 * (loopT - T_ORBIT - T_SETTLE) / T_REST) : 1;
+
+    dot(P1.x, P1.y, DOT_R * snapPulse, dotA);
+    dot(P2.x, P2.y, DOT_R * snapPulse, dotA);
+
+    // ── Connection flash on snap ──
+    if (settling && settleRaw > 0.6) {
+        const fa = (1 - settleRaw) * 0.35;
+        ctx.save();
+        ctx.strokeStyle = `rgba(0,212,255,${fa})`;
+        ctx.lineWidth   = 0.5 * dpr;
+        ctx.beginPath();
+        ctx.moveTo(P1.x, P1.y); ctx.lineTo(P2.x, P2.y);
+        ctx.stroke(); ctx.restore();
+    }
+}
+
+// ── Glow dot helper ───────────────────────────────────────────────────
+function dot(x, y, r, alpha) {
+    if (alpha < 0.005) return;
+
+    // Wide halo
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r*7);
+    g.addColorStop(0,   `rgba(0,212,255,${alpha*0.55})`);
+    g.addColorStop(0.35,`rgba(0,212,255,${alpha*0.18})`);
+    g.addColorStop(1,   'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(x, y, r*7, 0, Math.PI*2); ctx.fill();
+
+    // Mid ring
+    const g2 = ctx.createRadialGradient(x, y, 0, x, y, r*2.5);
+    g2.addColorStop(0, `rgba(180,240,255,${alpha*0.9})`);
+    g2.addColorStop(1, `rgba(0,212,255,${alpha*0.2})`);
+    ctx.fillStyle = g2;
+    ctx.beginPath(); ctx.arc(x, y, r*2.5, 0, Math.PI*2); ctx.fill();
+
+    // Hard core
+    ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fill();
+}
+
+// ── Start ─────────────────────────────────────────────────────────────
+document.fonts.ready.then(() => {
+    rafId = requestAnimationFrame(frame);
+});
+
+// Fade hint after first cycle
+setTimeout(() => {
+    const h = document.getElementById('hint');
+    if (h) h.style.opacity = '0';
+}, T_LOOP + 500);
+</script>
+</body>
+</html>
