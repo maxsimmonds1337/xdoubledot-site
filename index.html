@@ -4,15 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ẍ — AI-Powered Hall Effect Thrusters</title>
+    <title>ẍ — Intelligent Electric Propulsion</title>
+    <meta name="description" content="Building AI-optimised Hall Effect Thrusters for the next generation of satellite constellations. ITAR-free, Krypton-native, designed for VLEO.">
     <link rel="icon"
-        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cstyle%3E text %7B fill: %2300f2ff; font-family: 'Cormorant Garamond', serif; font-style: italic; font-weight: 600; %7D @media (prefers-color-scheme: light) %7B text %7B fill: %23008080; %7D %7D %3C/style%3E%3Ctext y='0.8em' x='50%25' text-anchor='middle' font-size='90'%3Eẍ%3C/text%3E%3C/svg%3E">
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cstyle%3E text %7B fill: %2300d4ff; font-family: 'Cormorant Garamond', serif; font-style: italic; font-weight: 600; %7D %3C/style%3E%3Ctext y='0.8em' x='50%25' text-anchor='middle' font-size='90'%3Eẍ%3C/text%3E%3C/svg%3E">
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@1,600&display=swap"
         rel="stylesheet">
     <style>
         :root {
             --accent: #00d4ff;
+            --accent-dim: rgba(0, 212, 255, 0.12);
             --bg: #000000;
             --surface: #0a0a0f;
             --surface-light: #12141a;
@@ -21,11 +23,9 @@
             --border: rgba(255, 255, 255, 0.08);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
 
         body {
             font-family: 'Inter', sans-serif;
@@ -34,11 +34,17 @@
             min-height: 100vh;
         }
 
+        /* ── Header ── */
         header {
-            padding: 40px 80px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 24px 80px;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--border);
         }
 
@@ -48,56 +54,99 @@
             font-family: 'Cormorant Garamond', 'Times New Roman', serif;
             font-style: italic;
             font-weight: 600;
+            font-size: 2.6rem;
             color: var(--accent);
+            text-decoration: none;
+            line-height: 1;
         }
 
-        .logo::before {
-            content: '¨';
-            position: absolute;
-            top: 0.08em;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 0.65em;
-            font-style: normal;
-            font-family: 'Times New Roman', serif;
-            color: var(--accent);
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 40px;
         }
 
         nav a {
             color: var(--text-muted);
             text-decoration: none;
-            margin-left: 32px;
-            font-size: 0.9rem;
-            letter-spacing: 0.05em;
+            font-size: 0.875rem;
+            letter-spacing: 0.04em;
             transition: color 0.2s;
         }
 
-        nav a:hover {
-            color: var(--accent);
+        nav a:hover { color: var(--accent); }
+
+        .nav-contact {
+            padding: 8px 20px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text) !important;
+            transition: border-color 0.2s, color 0.2s !important;
         }
 
+        .nav-contact:hover {
+            border-color: var(--accent) !important;
+            color: var(--accent) !important;
+        }
+
+        /* ── Hero ── */
         .hero {
-            padding: 100px 80px 80px;
-            max-width: 900px;
+            min-height: 88vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 80px 80px 60px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -200px;
+            right: -200px;
+            width: 700px;
+            height: 700px;
+            background: radial-gradient(circle, rgba(0,212,255,0.06) 0%, transparent 65%);
+            pointer-events: none;
+        }
+
+        .hero-label {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            color: var(--accent);
+            margin-bottom: 28px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .hero-label::before {
+            content: '';
+            display: block;
+            width: 32px;
+            height: 1px;
+            background: var(--accent);
         }
 
         .hero h1 {
             font-family: 'Space Grotesk', sans-serif;
-            font-size: 3.5rem;
+            font-size: clamp(2.8rem, 5.5vw, 5rem);
             font-weight: 700;
-            line-height: 1.15;
-            margin-bottom: 24px;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+            margin-bottom: 28px;
+            max-width: 820px;
         }
 
-        .hero h1 span {
-            color: var(--accent);
-        }
+        .hero h1 span { color: var(--accent); }
 
         .hero p {
-            font-size: 1.15rem;
+            font-size: 1.1rem;
             color: var(--text-muted);
             line-height: 1.8;
-            max-width: 620px;
+            max-width: 560px;
             margin-bottom: 48px;
         }
 
@@ -110,11 +159,12 @@
         .btn {
             padding: 14px 28px;
             border-radius: 6px;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             font-weight: 600;
             text-decoration: none;
             transition: all 0.2s;
             display: inline-block;
+            letter-spacing: 0.02em;
         }
 
         .btn-primary {
@@ -123,254 +173,582 @@
         }
 
         .btn-primary:hover {
-            background: #4de8ff;
+            background: #33deff;
+            transform: translateY(-1px);
         }
 
-        .btn-secondary {
+        .btn-outline {
             border: 1px solid var(--border);
             color: var(--text);
-            background: var(--surface);
+            background: transparent;
         }
 
-        .btn-secondary:hover {
+        .btn-outline:hover {
             border-color: var(--accent);
             color: var(--accent);
         }
 
+        /* ── Stats bar ── */
         .stats {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 1px;
-            background: var(--border);
             border-top: 1px solid var(--border);
             border-bottom: 1px solid var(--border);
-            margin: 0 0 80px;
         }
 
         .stat {
-            background: var(--bg);
-            padding: 40px 80px;
-            text-align: left;
+            padding: 36px 80px;
+            border-right: 1px solid var(--border);
         }
+
+        .stat:last-child { border-right: none; }
 
         .stat-value {
             font-family: 'Space Grotesk', sans-serif;
-            font-size: 2.2rem;
+            font-size: 2rem;
             font-weight: 700;
             color: var(--accent);
             margin-bottom: 6px;
         }
 
         .stat-label {
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             color: var(--text-muted);
+            line-height: 1.5;
         }
 
-        .section {
-            padding: 0 80px 80px;
+        /* ── Sections ── */
+        section {
+            padding: 100px 80px;
         }
 
-        .section h2 {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 1.1rem;
+        .section-label {
+            font-size: 0.75rem;
             text-transform: uppercase;
-            letter-spacing: 0.12em;
-            color: var(--text-muted);
-            margin-bottom: 32px;
+            letter-spacing: 0.14em;
+            color: var(--accent);
+            margin-bottom: 16px;
         }
 
-        .cards {
+        .section-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(1.8rem, 3vw, 2.6rem);
+            font-weight: 700;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+            margin-bottom: 20px;
+            max-width: 640px;
+        }
+
+        .section-sub {
+            font-size: 1rem;
+            color: var(--text-muted);
+            line-height: 1.8;
+            max-width: 540px;
+            margin-bottom: 64px;
+        }
+
+        /* ── Technology pillars ── */
+        .pillars {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(2, 1fr);
             gap: 1px;
             background: var(--border);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .pillar {
+            background: var(--surface);
+            padding: 40px 44px;
+            transition: background 0.2s;
+        }
+
+        .pillar:hover { background: var(--surface-light); }
+
+        .pillar-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: var(--accent-dim);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+
+        .pillar h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .pillar p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        /* ── Product section ── */
+        .product-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: start;
+        }
+
+        .dev-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            background: rgba(255, 170, 0, 0.12);
+            color: #ffaa00;
+            border: 1px solid rgba(255, 170, 0, 0.2);
+            margin-bottom: 28px;
+        }
+
+        .dev-badge::before {
+            content: '';
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #ffaa00;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .spec-table {
             border: 1px solid var(--border);
             border-radius: 8px;
             overflow: hidden;
         }
 
-        .card {
-            background: var(--surface);
-            padding: 32px;
+        .spec-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border-bottom: 1px solid var(--border);
         }
 
-        .card h3 {
+        .spec-row:last-child { border-bottom: none; }
+
+        .spec-key {
+            padding: 14px 20px;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+        }
+
+        .spec-val {
+            padding: 14px 20px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            background: var(--surface-light);
+        }
+
+        /* ── Roadmap ── */
+        .roadmap {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            position: relative;
+            padding-left: 28px;
+        }
+
+        .roadmap::before {
+            content: '';
+            position: absolute;
+            left: 7px;
+            top: 12px;
+            bottom: 12px;
+            width: 1px;
+            background: var(--border);
+        }
+
+        .roadmap-item {
+            position: relative;
+            padding: 0 0 44px 36px;
+        }
+
+        .roadmap-item:last-child { padding-bottom: 0; }
+
+        .roadmap-dot {
+            position: absolute;
+            left: -22px;
+            top: 4px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            background: var(--bg);
+        }
+
+        .roadmap-dot.done {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .roadmap-dot.active {
+            background: var(--bg);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(0,212,255,0.15);
+        }
+
+        .roadmap-phase {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .roadmap-title {
             font-family: 'Space Grotesk', sans-serif;
             font-size: 1rem;
             font-weight: 600;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
-        .card p {
-            font-size: 0.9rem;
+        .roadmap-desc {
+            font-size: 0.875rem;
             color: var(--text-muted);
-            line-height: 1.7;
-            margin-bottom: 20px;
+            line-height: 1.6;
         }
 
-        .card a {
-            font-size: 0.85rem;
-            color: var(--accent);
-            text-decoration: none;
+        /* ── Team ── */
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 32px;
+            max-width: 720px;
         }
 
-        .card a:hover {
-            text-decoration: underline;
+        .team-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            transition: border-color 0.2s;
         }
 
-        .tag {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 4px;
-            font-size: 0.72rem;
+        .team-card:hover { border-color: rgba(0,212,255,0.3); }
+
+        .team-photo {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            object-position: center top;
+            display: block;
+            filter: grayscale(20%);
+        }
+
+        .team-info {
+            padding: 20px 24px;
+        }
+
+        .team-name {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1rem;
             font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            margin-bottom: 12px;
+            margin-bottom: 4px;
         }
 
-        .tag-live {
-            background: rgba(0, 212, 255, 0.15);
+        .team-role {
+            font-size: 0.82rem;
             color: var(--accent);
+            margin-bottom: 10px;
         }
 
-        .tag-draft {
-            background: rgba(255, 255, 255, 0.06);
+        .team-bio {
+            font-size: 0.82rem;
             color: var(--text-muted);
+            line-height: 1.6;
         }
 
-        .tag-private {
-            background: rgba(255, 107, 107, 0.12);
-            color: #ff8080;
-        }
-
-        footer {
-            padding: 40px 80px;
+        /* ── Contact ── */
+        .contact-section {
+            background: var(--surface);
             border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .contact-section .section-title {
+            max-width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .contact-section .section-sub {
+            max-width: 460px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* ── Footer ── */
+        footer {
+            padding: 36px 80px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             color: var(--text-muted);
-            font-size: 0.85rem;
+            font-size: 0.82rem;
         }
 
         footer a {
             color: var(--text-muted);
             text-decoration: none;
+            transition: color 0.2s;
         }
 
-        footer a:hover {
+        footer a:hover { color: var(--accent); }
+
+        .footer-logo {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-weight: 600;
             color: var(--accent);
+            font-size: 1.3rem;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 900px) {
+            header, .hero, section, footer { padding-left: 32px; padding-right: 32px; }
+            .hero h1 { font-size: 2.6rem; }
+            .stats { grid-template-columns: repeat(2, 1fr); }
+            .stat { padding: 28px 32px; border-bottom: 1px solid var(--border); }
+            .pillars { grid-template-columns: 1fr; }
+            .product-layout { grid-template-columns: 1fr; gap: 48px; }
+            .team-grid { grid-template-columns: 1fr 1fr; }
+        }
+
+        @media (max-width: 600px) {
+            .stats { grid-template-columns: 1fr; }
+            .team-grid { grid-template-columns: 1fr; }
+            nav { gap: 20px; }
         }
     </style>
 </head>
 
 <body>
 
+    <!-- ── Header ─────────────────────────────────────────────────────── -->
     <header>
-        <div class="logo" style="font-size:3rem;">x</div>
+        <a href="#" class="logo">x</a>
         <nav>
-            <a href="pitch-deck.html">Pitch Deck</a>
-            <a href="docs/explainer.html">Technical Docs</a>
-            <a href="mailto:maxsimmonds1337@gmail.com">Contact</a>
+            <a href="#technology">Technology</a>
+            <a href="#product">Product</a>
+            <a href="#team">Team</a>
+            <a href="#contact" class="nav-contact">Contact</a>
         </nav>
     </header>
 
+    <!-- ── Hero ───────────────────────────────────────────────────────── -->
     <div class="hero">
-        <h1>Building the engine of<br><span>sovereign space infrastructure</span></h1>
-        <p>AI-powered Hall Effect Thrusters for Very Low Earth Orbit. Krypton-native, ITAR-free, designed from the
-            ground up for continuous VLEO drag compensation.</p>
+        <div class="hero-label">Electric Propulsion · VLEO · Krypton</div>
+        <h1>Accelerating<br><span>your mission</span></h1>
+        <p>We are building AI-optimised Hall Effect Thrusters that extend satellite lifetime and enable continuous drag compensation in Very Low Earth Orbit — without relying on US-export-controlled components.</p>
         <div class="cta-group">
-            <a href="pitch-deck.html" class="btn btn-primary">View Pitch Deck</a>
-            <a href="docs/explainer.html" class="btn btn-secondary">Technical Explainer</a>
+            <a href="#product" class="btn btn-primary">Our Technology</a>
+            <a href="#contact" class="btn btn-outline">Get in Touch</a>
         </div>
     </div>
 
+    <!-- ── Stats ──────────────────────────────────────────────────────── -->
     <div class="stats">
         <div class="stat">
             <div class="stat-value">85%</div>
-            <div class="stat-label">Cathode flux reduction in simulation</div>
+            <div class="stat-label">Simulated reduction in cathode erosion flux</div>
         </div>
         <div class="stat">
             <div class="stat-value">4×+</div>
-            <div class="stat-label">Projected lifetime extension</div>
+            <div class="stat-label">Projected lifetime extension over baseline</div>
         </div>
         <div class="stat">
-            <div class="stat-value">41/41</div>
-            <div class="stat-label">Validation tests passing — 26 vs published data, 15 vs live HallThruster.jl
-                simulation (Marks 2023)</div>
+            <div class="stat-value">ITAR-free</div>
+            <div class="stat-label">Fully European supply chain — no US export controls</div>
         </div>
         <div class="stat">
             <div class="stat-value">TRL 2–3</div>
-            <div class="stat-label">Current maturity — simulation validated</div>
+            <div class="stat-label">Simulation validated — hardware development in progress</div>
         </div>
     </div>
 
-    <div class="section">
-        <h2>Resources</h2>
-        <div class="cards">
-            <div class="card">
-                <span class="tag tag-live">Live</span>
-                <h3>Pitch Deck</h3>
-                <p>Full investor deck — problem, solution, Aegis software, market, competitive landscape, team, and ask.
+    <!-- ── Technology ─────────────────────────────────────────────────── -->
+    <section id="technology">
+        <div class="section-label">Technology</div>
+        <h2 class="section-title">Designed from first principles for VLEO</h2>
+        <p class="section-sub">Hall Effect Thrusters have proven themselves in GEO and MEO. The frontier is VLEO — altitudes below 450 km where atmospheric drag is significant and thruster lifetime is the limiting factor. We've built a propulsion stack around solving that problem.</p>
+
+        <div class="pillars">
+            <div class="pillar">
+                <div class="pillar-icon">⚡</div>
+                <h3>Aegis — AI Magnetic Optimisation</h3>
+                <p>Our core software, Aegis, uses reinforcement learning to continuously optimise the thruster's magnetic field topology in real time. It minimises erosive ion flux to the channel walls and cathode, extending operational lifetime well beyond what static designs achieve.</p>
+            </div>
+            <div class="pillar">
+                <div class="pillar-icon">🔵</div>
+                <h3>Krypton-Native Architecture</h3>
+                <p>We design around Krypton from day one. Kr offers higher specific impulse per unit cost than Xenon, is abundant in European supply chains, and is not subject to the same geopolitical supply risks. Our magnetic field profiles and channel geometry are co-optimised for Kr's ionisation physics.</p>
+            </div>
+            <div class="pillar">
+                <div class="pillar-icon">🛡️</div>
+                <h3>Magnetically Shielded Pole Geometry</h3>
+                <p>We apply flux-surface-matched pole piece geometry (following Mikellides 2014) to shape the magnetic field so that equipotential surfaces run parallel to the channel walls. This near-eliminates the radial electric field component responsible for wall bombardment — the dominant wear mechanism in conventional thrusters.</p>
+            </div>
+            <div class="pillar">
+                <div class="pillar-icon">🌍</div>
+                <h3>ITAR-Free by Design</h3>
+                <p>Every component — from the discharge chamber to the power processing unit — is specified for European manufacture. No reliance on US-controlled technology means our customers can integrate without export licence delays, and European operators maintain full supply chain sovereignty.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── Product ────────────────────────────────────────────────────── -->
+    <section id="product" style="background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+        <div class="section-label">Product</div>
+        <h2 class="section-title">200 W Hall Thruster System</h2>
+        <p class="section-sub">Our first product is a 200 W Krypton Hall thruster with integrated Aegis magnetic field control, targeting microsatellite and small satellite platforms operating in VLEO and LEO.</p>
+
+        <div class="product-layout">
+            <div>
+                <div class="dev-badge">In Development</div>
+                <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.8; margin-bottom: 32px;">
+                    The thruster system is currently in the simulation and detailed design phase. Our physics models have been validated against published experimental data and independent simulation frameworks. We are progressing toward bench-level hardware testing.
                 </p>
-                <a href="pitch-deck.html">View deck →</a>
+                <div class="spec-table">
+                    <div class="spec-row">
+                        <div class="spec-key">Propellant</div>
+                        <div class="spec-val">Krypton (Kr)</div>
+                    </div>
+                    <div class="spec-row">
+                        <div class="spec-key">Power level</div>
+                        <div class="spec-val">200 W (nominal)</div>
+                    </div>
+                    <div class="spec-row">
+                        <div class="spec-key">Discharge channel</div>
+                        <div class="spec-val">BN ceramic, 36 mm mean diameter</div>
+                    </div>
+                    <div class="spec-row">
+                        <div class="spec-key">Magnetic shielding</div>
+                        <div class="spec-key">Aegis flux-surface matched</div>
+                    </div>
+                    <div class="spec-row">
+                        <div class="spec-key">Magnetic control</div>
+                        <div class="spec-val">Real-time Aegis RL optimiser</div>
+                    </div>
+                    <div class="spec-row">
+                        <div class="spec-key">PPU</div>
+                        <div class="spec-val">Integrated, STM32-controlled</div>
+                    </div>
+                    <div class="spec-row">
+                        <div class="spec-key">Export classification</div>
+                        <div class="spec-val">ITAR-free · EAR99 target</div>
+                    </div>
+                    <div class="spec-row">
+                        <div class="spec-key">Current TRL</div>
+                        <div class="spec-val">TRL 2–3 (simulation validated)</div>
+                    </div>
+                </div>
             </div>
-            <div class="card">
-                <span class="tag tag-live">Live</span>
-                <h3>Technical Explainer</h3>
-                <p>Deep-dive on HET physics, cathode erosion, magnetic shielding, reinforcement learning, and our
-                    simulation results.</p>
-                <a href="docs/explainer.html">Read explainer →</a>
-            </div>
-            <div class="card">
-                <span class="tag tag-live">Live</span>
-                <h3>Learning Primer</h3>
-                <p>Curriculum for understanding everything behind Aegis — plasma physics, RL, magnetic circuits, Krypton
-                    propellant.</p>
-                <a href="docs/learning-primer.html">Start learning →</a>
-            </div>
-            <div class="card">
-                <span class="tag tag-live">Live</span>
-                <h3>PPU Design</h3>
-                <p>Preliminary design of the Power Processing Unit: 250V discharge supply, coil drivers, keeper
-                    ignition, STM32 control, radiation tolerance, and mass budget.</p>
-                <a href="docs/ppu-design.html">Read design →</a>
-            </div>
-            <div class="card">
-                <span class="tag tag-live">Live</span>
-                <h3>Validation Methodology</h3>
-                <p>How we know the simulation is trustworthy — Level 1 (literature), Level 2 (HallThruster.jl), Level 3
-                    (WarpX PIC), and Level 4 (bench hardware) test suites.</p>
-                <a href="docs/validation.html">Read validation →</a>
-            </div>
-            <div class="card">
-                <span class="tag tag-live">Live</span>
-                <h3>Technical Manual</h3>
-                <p>Developer guide: environment API, training pipeline, configuration, running the test suite, and the
-                    sim-to-real transfer plan.</p>
-                <a href="docs/manual.html">Read manual →</a>
-            </div>
-            <div class="card">
-                <span class="tag tag-live">Live</span>
-                <h3>HET Hardware Design</h3>
-                <p>Full hardware design reference: magnetic circuit, BN discharge channel, coil geometry, hollow
-                    cathode, propellant feed, materials, and manufacturing notes for the 200W Kr thruster.</p>
-                <a href="docs/het-design.html">Read design →</a>
-            </div>
-            <div class="card">
-                <span class="tag tag-private">Private</span>
-                <h3>Aegis Source Code</h3>
-                <p>Physics-informed Gymnasium environment, SAC training pipeline, and validation test suite.</p>
-                <a href="https://github.com/maxsimmonds1337/Aegis" target="_blank">View on GitHub →</a>
+
+            <div>
+                <div class="section-label" style="margin-bottom: 24px;">Development Roadmap</div>
+                <div class="roadmap">
+                    <div class="roadmap-item">
+                        <div class="roadmap-dot done"></div>
+                        <div class="roadmap-phase">Phase 1 — Complete</div>
+                        <div class="roadmap-title">Physics modelling & validation</div>
+                        <div class="roadmap-desc">2D finite-difference magnetic solver, reinforcement learning environment, and validation against published HET data and independent simulation frameworks.</div>
+                    </div>
+                    <div class="roadmap-item">
+                        <div class="roadmap-dot done"></div>
+                        <div class="roadmap-phase">Phase 2 — Complete</div>
+                        <div class="roadmap-title">Aegis optimisation</div>
+                        <div class="roadmap-desc">Flux-surface matched pole geometry finalised. Aegis RL agent trained and evaluated. Magnetic shielding configuration selected.</div>
+                    </div>
+                    <div class="roadmap-item">
+                        <div class="roadmap-dot active"></div>
+                        <div class="roadmap-phase">Phase 3 — Active</div>
+                        <div class="roadmap-title">Detailed hardware design</div>
+                        <div class="roadmap-desc">Pole piece geometry, BN channel, PPU schematic, hollow cathode integration, and propellant feed system specification.</div>
+                    </div>
+                    <div class="roadmap-item">
+                        <div class="roadmap-dot"></div>
+                        <div class="roadmap-phase">Phase 4</div>
+                        <div class="roadmap-title">Bench hardware &amp; vacuum testing</div>
+                        <div class="roadmap-desc">First article manufacture, vacuum facility testing, performance and lifetime characterisation.</div>
+                    </div>
+                    <div class="roadmap-item">
+                        <div class="roadmap-dot"></div>
+                        <div class="roadmap-phase">Phase 5</div>
+                        <div class="roadmap-title">Flight qualification</div>
+                        <div class="roadmap-desc">Environmental testing, qualification campaign, and first flight opportunity.</div>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
+    </section>
 
+    <!-- ── Team ───────────────────────────────────────────────────────── -->
+    <section id="team">
+        <div class="section-label">Team</div>
+        <h2 class="section-title">Built by engineers who care about the mission</h2>
+        <p class="section-sub">We're a focused technical team combining expertise in spacecraft systems engineering and computational physics, united by the goal of making European in-space propulsion genuinely competitive.</p>
+
+        <div class="team-grid">
+            <div class="team-card">
+                <img src="assets/max.jpeg" alt="Max Simmonds" class="team-photo">
+                <div class="team-info">
+                    <div class="team-name">Max Simmonds</div>
+                    <div class="team-role">Co-founder · Systems &amp; Software</div>
+                    <div class="team-bio">Spacecraft systems engineer and software lead. Responsible for Aegis RL architecture, simulation stack, PPU design, and overall system integration.</div>
+                </div>
+            </div>
+            <div class="team-card">
+                <img src="assets/tiz.jpeg" alt="Tizian" class="team-photo">
+                <div class="team-info">
+                    <div class="team-name">Tizian</div>
+                    <div class="team-role">Co-founder · Physics &amp; Propulsion</div>
+                    <div class="team-bio">Propulsion physicist and thruster design lead. Responsible for magnetic circuit design, plasma physics modelling, channel geometry, and experimental validation strategy.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── Contact ────────────────────────────────────────────────────── -->
+    <section id="contact" class="contact-section">
+        <div class="section-label">Contact</div>
+        <h2 class="section-title">Work with us</h2>
+        <p class="section-sub">We're looking for early partners — satellite operators, investors, and research collaborators who believe the next decade of space belongs to intelligent, sovereign propulsion. Get in touch.</p>
+        <a href="mailto:maxsimmonds1337@gmail.com" class="btn btn-primary" style="margin-top: 8px;">maxsimmonds1337@gmail.com</a>
+    </section>
+
+    <!-- ── Footer ─────────────────────────────────────────────────────── -->
     <footer>
-        <div><span class="logo" style="font-size:1.1rem;vertical-align:middle;">x</span> OÜ · Tallinn, Estonia · <a
-                href="mailto:maxsimmonds1337@gmail.com">maxsimmonds1337@gmail.com</a></div>
-        <div><a href="https://xdoubledot.space">xdoubledot.space</a></div>
+        <div>
+            <span class="footer-logo">x</span>
+            OÜ &middot; Tallinn, Estonia
+        </div>
+        <div style="color: var(--text-muted);">© 2025 ẍ OÜ. All rights reserved.</div>
+        <div>
+            <a href="mailto:maxsimmonds1337@gmail.com">Contact</a>
+        </div>
     </footer>
 
 </body>
