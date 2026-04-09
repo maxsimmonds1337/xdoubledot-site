@@ -26,293 +26,235 @@ const ctx    = canvas.getContext('2d');
 const dpr    = window.devicePixelRatio || 1;
 
 // ── Timing ────────────────────────────────────────────────────────────
-const T_ORBIT  = 3600;
-const T_SETTLE = 1100;
-const T_TEXT   = 2000;   // particles fly in and form text
-const T_REST   = 2600;
-const T_LOOP   = T_ORBIT + T_SETTLE + T_TEXT + T_REST;
+const T_ORBIT  = 5500;   // orbit + spiral-in
+const T_REST   = 2500;   // rest at top with text fully shown
+const T_LOOP   = T_ORBIT + T_REST;
+
+// Fraction of T_ORBIT spent at full radius before spiralling in
+const SPIRAL_START = 0.58;
 
 // ── Easing ────────────────────────────────────────────────────────────
-const easeInOut   = t => t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
-const easeOut3    = t => 1 - Math.pow(1-t, 3);
-const easeOut4    = t => 1 - Math.pow(1-t, 4);
-const easeOutBack = t => { const c1=1.70158,c3=c1+1; return 1+c3*Math.pow(t-1,3)+c1*Math.pow(t-1,2); };
+const easeInOut = t => t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+const easeOut3  = t => 1 - Math.pow(1-t, 3);
+const easeOut5  = t => 1 - Math.pow(1-t, 5);
 
-// ── Canvas resize ─────────────────────────────────────────────────────
-let particles = null;
+// ── Resize ────────────────────────────────────────────────────────────
 function resize() {
     canvas.width  = window.innerWidth  * dpr;
     canvas.height = window.innerHeight * dpr;
     canvas.style.width  = window.innerWidth  + 'px';
     canvas.style.height = window.innerHeight + 'px';
-    particles = null;
 }
 resize();
 window.addEventListener('resize', resize);
 
-// ── Build text particles (called once per loop, after fonts load) ──────
-function buildParticles(CX, CY, FS) {
-    const TEXT_FS = FS * 0.38;
-    const TEXT_Y  = CY + FS * 0.85;    // baseline centre below the x
+// ── Per-loop state (reset on each cycle) ──────────────────────────────
+let textRevealX = null;   // rightmost x reached by lower dot in the sweep zone
+let epoch       = null;
 
-    // Render text onto a small offscreen canvas to sample pixel positions
-    const OW = Math.ceil(TEXT_FS * 10);
-    const OH = Math.ceil(TEXT_FS * 1.8);
-    const oc  = document.createElement('canvas');
-    oc.width  = OW;
-    oc.height = OH;
-    const ox = oc.getContext('2d');
-    ox.font         = `italic 600 ${TEXT_FS}px 'Cormorant Garamond', serif`;
-    ox.textAlign    = 'center';
-    ox.textBaseline = 'middle';
-    ox.fillStyle    = '#ffffff';
-    ox.fillText('x double dot', OW / 2, OH / 2);
-
-    const data = ox.getImageData(0, 0, OW, OH).data;
-    const step = Math.max(3, Math.round(dpr * 2.2));
-    const pts  = [];
-
-    for (let y = 0; y < OH; y += step) {
-        for (let x = 0; x < OW; x += step) {
-            if (data[(y * OW + x) * 4 + 3] > 80) {
-                pts.push({
-                    tx: CX + (x - OW / 2),
-                    ty: TEXT_Y + (y - OH / 2),
-                });
-            }
-        }
-    }
-
-    // Shuffle
-    for (let i = pts.length - 1; i > 0; i--) {
-        const j = (Math.random() * (i + 1)) | 0;
-        [pts[i], pts[j]] = [pts[j], pts[i]];
-    }
-
-    const MAX = 800;
-    const out  = pts.slice(0, MAX);
-
-    // Start positions: spray from the two settled dot positions
-    const sep  = 0;   // will be overwritten below; passing dots separately
-    return out;       // caller assigns sx/sy per particle
-}
-
-// ── Trail history ─────────────────────────────────────────────────────
-const TRAIL = 26;
-const hist  = [[], []];
-
-// ── Clock ─────────────────────────────────────────────────────────────
-let epoch = null;
 function restart() {
+    textRevealX = null;
+    epoch       = null;
     hist[0].length = hist[1].length = 0;
-    particles = null;
-    epoch = null;
 }
 canvas.addEventListener('click', restart);
 
+const TRAIL = 24;
+const hist  = [[], []];
+
 // ── Glow dot ──────────────────────────────────────────────────────────
 function dot(x, y, r, alpha) {
-    if (alpha < 0.005 || r <= 0) return;
-    const g = ctx.createRadialGradient(x, y, 0, x, y, r * 7);
-    g.addColorStop(0,    `rgba(0,212,255,${alpha * 0.55})`);
-    g.addColorStop(0.35, `rgba(0,212,255,${alpha * 0.18})`);
+    if (alpha < 0.004 || r <= 0) return;
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r*7);
+    g.addColorStop(0,    `rgba(0,212,255,${alpha*0.55})`);
+    g.addColorStop(0.35, `rgba(0,212,255,${alpha*0.18})`);
     g.addColorStop(1,    'rgba(0,0,0,0)');
     ctx.fillStyle = g;
-    ctx.beginPath(); ctx.arc(x, y, r * 7, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x, y, r*7, 0, Math.PI*2); ctx.fill();
 
-    const g2 = ctx.createRadialGradient(x, y, 0, x, y, r * 2.5);
-    g2.addColorStop(0, `rgba(200,245,255,${alpha * 0.95})`);
-    g2.addColorStop(1, `rgba(0,212,255,${alpha * 0.2})`);
+    const g2 = ctx.createRadialGradient(x, y, 0, x, y, r*2.5);
+    g2.addColorStop(0, `rgba(200,245,255,${alpha*0.95})`);
+    g2.addColorStop(1, `rgba(0,212,255,${alpha*0.2})`);
     ctx.fillStyle = g2;
-    ctx.beginPath(); ctx.arc(x, y, r * 2.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x, y, r*2.5, 0, Math.PI*2); ctx.fill();
 
     ctx.fillStyle = `rgba(255,255,255,${alpha})`;
-    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fill();
 }
 
-// ── Main frame ────────────────────────────────────────────────────────
+// ── Frame ─────────────────────────────────────────────────────────────
 function frame(ts) {
     requestAnimationFrame(frame);
     if (!epoch) epoch = ts;
 
     const loopT = (ts - epoch) % T_LOOP;
-    if (loopT < 60) { hist[0].length = hist[1].length = 0; particles = null; }
+    if (loopT < 60) { hist[0].length = hist[1].length = 0; textRevealX = null; }
 
-    const W  = canvas.width;
-    const H  = canvas.height;
-    const CX = W * 0.5;
-    const CY = H * 0.46;    // logo sits in upper half, text appears below
+    const W  = canvas.width,  H = canvas.height;
+    const CX = W * 0.5,      CY = H * 0.44;
 
-    // ── Dimensions ──
-    const FS = Math.min(W, H) * 0.30;
+    // ── Geometry ──
+    const FS     = Math.min(W, H) * 0.30;
+    const DOT_R  = FS * 0.040;
+    const R0     = Math.min(W, H) * 0.30;   // start radius — large enough to sweep text zone
+    const R1     = Math.min(W, H) * 0.075;  // end radius just before settling
+
+    // x character metrics
     ctx.font         = `italic 600 ${FS}px 'Cormorant Garamond', serif`;
     ctx.textBaseline = 'alphabetic';
     ctx.textAlign    = 'center';
     const m      = ctx.measureText('x');
-    const ascent = (m.actualBoundingBoxAscent > 0 ? m.actualBoundingBoxAscent : FS * 0.52);
-    const sep    = m.width * 0.215;
+    const ascent = m.actualBoundingBoxAscent > 0 ? m.actualBoundingBoxAscent : FS * 0.52;
+    const xSep   = m.width * 0.215;
     const dotY   = CY - ascent - FS * 0.065;
-    const DOT_R  = FS * 0.040;
 
-    const TARGET = [
-        { x: CX - sep, y: dotY },
-        { x: CX + sep, y: dotY },
-    ];
+    // Diaeresis targets
+    const TARGET = [{ x: CX - xSep, y: dotY }, { x: CX + xSep, y: dotY }];
 
     // ── Orbit ──
+    // orbitP: 0→1 over T_ORBIT
     const orbitP = Math.min(loopT / T_ORBIT, 1.0);
-    const R0     = Math.min(W, H) * 0.28;
-    const R1     = Math.min(W, H) * 0.082;
-    const R      = R0 - (R0 - R1) * easeInOut(orbitP);
-    const spd    = 1 - easeInOut(orbitP) * 0.5;
-    const theta  = orbitP * Math.PI * 3.6 * spd;
-    const a1     = -Math.PI * 0.5 + theta;
-    const a2     = a1 + Math.PI * 0.9;
-    const oPos   = a => ({ x: CX + Math.cos(a) * R, y: CY + Math.sin(a) * R });
-    const P1o    = oPos(a1);
-    const P2o    = oPos(a2);
 
-    // ── Settle ──
-    const settleRaw = loopT > T_ORBIT ? Math.min((loopT - T_ORBIT) / T_SETTLE, 1.0) : 0;
-    const settleE   = settleRaw > 0 ? easeOutBack(settleRaw) : 0;
-    const lp = (a, b, t) => a + (b - a) * t;
-    const P1 = { x: lp(P1o.x, TARGET[0].x, settleE), y: lp(P1o.y, TARGET[0].y, settleE) };
-    const P2 = { x: lp(P2o.x, TARGET[1].x, settleE), y: lp(P2o.y, TARGET[1].y, settleE) };
+    // Phase 1 (0 → SPIRAL_START): orbit at full radius  → ~1.9 revolutions
+    // Phase 2 (SPIRAL_START → 1): radius spirals to 0, centre drifts to targets
+    const spiralP  = Math.max(0, (orbitP - SPIRAL_START) / (1 - SPIRAL_START)); // 0→1 in phase 2
+    const phase1P  = Math.min(orbitP / SPIRAL_START, 1.0);                       // 0→1 in phase 1
 
-    const orbiting = settleRaw === 0;
+    // Radius: constant in phase 1, eases to 0 in phase 2
+    const R = R0 * (1 - easeOut5(spiralP));
 
-    // ── Text phase ──
-    const textStart = T_ORBIT + T_SETTLE;
-    const textRaw   = loopT > textStart ? Math.min((loopT - textStart) / T_TEXT, 1.0) : 0;
+    // Angle: accumulates during phase 1 (~1.9 rev), adds a final half-turn while spiralling
+    const theta = phase1P * Math.PI * 3.8
+                + spiralP * Math.PI * 1.2 * (1 - easeInOut(spiralP) * 0.8);
 
-    // Initialise particles on first text frame — font guaranteed loaded by now
-    if (textRaw > 0 && !particles) {
-        const pts = buildParticles(CX, CY, FS);
-        const spread = FS * 0.06;
-        // Sort pts left-to-right for sweep effect, add sx/sy/delay
-        pts.sort((a, b) => a.tx - b.tx);
-        const n = pts.length;
-        particles = pts.map((p, i) => {
-            const src = i % 2 === 0 ? TARGET[0] : TARGET[1];
-            return {
-                ...p,
-                sx: src.x + (Math.random() - 0.5) * spread,
-                sy: src.y + (Math.random() - 0.5) * spread,
-                delay: (i / n) * 0.55 + Math.random() * 0.08,
-            };
-        });
+    // Two dots 162° apart; dot 1 starts at top, dot 2 starts at upper-right
+    const a1 = -Math.PI * 0.5 - theta;
+    const a2 = a1 + Math.PI * 0.9;
+
+    // Orbit centre stays at CX,CY during phase 1;
+    // drifts toward each dot's own target only during phase 2 (so they land exactly)
+    const driftT = easeOut3(spiralP);
+    const c1x    = CX + (TARGET[0].x - CX) * driftT;
+    const c1y    = CY + (TARGET[0].y - CY) * driftT;
+    const c2x    = CX + (TARGET[1].x - CX) * driftT;
+    const c2y    = CY + (TARGET[1].y - CY) * driftT;
+
+    const P1 = { x: c1x + Math.cos(a1) * R, y: c1y + Math.sin(a1) * R };
+    const P2 = { x: c2x + Math.cos(a2) * R, y: c2y + Math.sin(a2) * R };
+
+    // ── Text wipe ──
+    // Text "x double dot" sits just below the bottom of the orbit.
+    // The lower dot sweeps left→right through that zone and reveals text.
+    const TEXT_FS       = FS * 0.38;
+    const TEXT_BASELINE = CY + FS * 0.78;   // baseline of subtitle text
+
+    // Figure out text width (we'll need it for the clip)
+    ctx.font = `italic 600 ${TEXT_FS}px 'Cormorant Garamond', serif`;
+    const TW       = ctx.measureText('x double dot').width;
+    const textLeft = CX - TW * 0.5;
+
+    // The "wipe zone": y band where the dot triggers text reveal
+    // Dots sweep below CY. Text is at CY + FS*0.78. The orbit at mid-progress
+    // has bottom ≈ CY + R_mid. We want R_mid ≥ TEXT_BASELINE - CY so the dot
+    // physically passes through the text zone.
+    const ZONE_TOP    = CY + (TEXT_BASELINE - CY) * 0.55;
+    const ZONE_BOTTOM = TEXT_BASELINE + FS * 0.20;
+
+    // Determine which dot is currently lower (larger y)
+    const lowerDot = P1.y >= P2.y ? P1 : P2;
+
+    // Gate: only track text wipe after dot 1 has completed its first half-orbit
+    // (theta > π means dot 1 has swept from top → left → bottom for the first time)
+    if (theta > Math.PI && lowerDot.y >= ZONE_TOP && lowerDot.y <= ZONE_BOTTOM) {
+        if (textRevealX === null) textRevealX = lowerDot.x;
+        else textRevealX = Math.max(textRevealX, lowerDot.x);
     }
+
+    // Once fully settled, ensure text is fully revealed
+    if (spiralP > 0.96) textRevealX = textLeft + TW + 10;
 
     // ── Clear & background ──
     ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
 
     // Ambient
-    const ambA = 0.022 + 0.036 * easeOut3(settleRaw) + 0.018 * textRaw;
-    const amb  = ctx.createRadialGradient(CX, CY, 0, CX, CY, FS * 1.5);
-    amb.addColorStop(0, `rgba(0,160,255,${ambA})`);
-    amb.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = amb;
-    ctx.fillRect(0, 0, W, H);
+    const ambA = 0.018 + 0.030 * easeOut3(spiralP);
+    const amb  = ctx.createRadialGradient(CX, CY, 0, CX, CY, FS * 1.6);
+    amb.addColorStop(0, `rgba(0,150,255,${ambA})`); amb.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = amb; ctx.fillRect(0, 0, W, H);
 
-    // ── Orbit ring ──
-    if (orbiting) {
-        const ringA = 0.07 * Math.min(1, loopT / 500) * (1 - Math.pow(orbitP, 4));
-        if (ringA > 0.003) {
-            ctx.save();
-            ctx.strokeStyle = `rgba(0,212,255,${ringA})`;
-            ctx.lineWidth   = 0.5 * dpr;
-            ctx.setLineDash([5 * dpr, 10 * dpr]);
-            ctx.beginPath();
-            ctx.arc(CX, CY, R, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.setLineDash([]);
-            ctx.restore();
-        }
+    // ── Orbit ring (fades as radius shrinks) ──
+    const ringA = 0.07 * (1 - easeOut3(spiralP)) * Math.min(1, loopT / 500);
+    if (ringA > 0.005 && R > 2) {
+        ctx.save();
+        ctx.strokeStyle = `rgba(0,212,255,${ringA})`;
+        ctx.lineWidth   = 0.5 * dpr;
+        ctx.setLineDash([5*dpr, 10*dpr]);
+        ctx.beginPath(); ctx.arc(CX, CY, R, 0, Math.PI*2); ctx.stroke();
+        ctx.setLineDash([]); ctx.restore();
     }
 
     // ── Trails ──
-    hist[0].push({ ...P1 });
-    hist[1].push({ ...P2 });
+    hist[0].push({...P1}); hist[1].push({...P2});
     if (hist[0].length > TRAIL) { hist[0].shift(); hist[1].shift(); }
-    if (orbiting) {
-        [hist[0], hist[1]].forEach(h => {
-            h.forEach((p, i) => {
-                dot(p.x, p.y, DOT_R * (i / h.length) * 0.65, (i / h.length) * 0.09);
-            });
-        });
+    const trailFade = 1 - easeOut5(spiralP);   // trails fade as dots spiral in
+    if (trailFade > 0.01) {
+        [hist[0], hist[1]].forEach(h => h.forEach((p, i) => {
+            dot(p.x, p.y, DOT_R * (i/h.length) * 0.6, (i/h.length) * 0.08 * trailFade);
+        }));
     }
 
-    // ── The x ──
+    // ── x character ──
     const xA = Math.min(loopT / 700, 1.0);
     ctx.save();
-    ctx.font         = `italic 600 ${FS}px 'Cormorant Garamond', serif`;
-    ctx.textAlign    = 'center';
-    ctx.textBaseline = 'alphabetic';
-    ctx.fillStyle    = `rgba(0,212,255,${xA * 0.82})`;
+    ctx.font = `italic 600 ${FS}px 'Cormorant Garamond', serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = `rgba(0,212,255,${xA * 0.82})`;
     ctx.fillText('x', CX, CY);
     ctx.restore();
 
-    // ── Diaeresis dots ──
-    const dotA       = Math.min(loopT / 350, 1.0);
-    const snapPulse  = settleRaw >= 1 && textRaw === 0
-        ? 1 + 0.18 * Math.exp(-6 * (loopT - T_ORBIT - T_SETTLE) / T_TEXT)
-        : 1;
-    dot(P1.x, P1.y, DOT_R * snapPulse, dotA);
-    dot(P2.x, P2.y, DOT_R * snapPulse, dotA);
+    // ── Dots ──
+    const dotA = Math.min(loopT / 350, 1.0);
+    dot(P1.x, P1.y, DOT_R, dotA);
+    dot(P2.x, P2.y, DOT_R, dotA);
 
-    // Snap flash
-    if (settleRaw > 0.62 && settleRaw < 1.0) {
+    // ── Text wipe reveal ──
+    if (textRevealX !== null) {
+        const clipRight = textRevealX;
+
         ctx.save();
-        ctx.strokeStyle = `rgba(0,212,255,${(1 - settleRaw) * 0.3})`;
-        ctx.lineWidth   = 0.5 * dpr;
+        // Clip to the revealed portion
         ctx.beginPath();
-        ctx.moveTo(P1.x, P1.y);
-        ctx.lineTo(P2.x, P2.y);
-        ctx.stroke();
+        ctx.rect(0, 0, clipRight, H);
+        ctx.clip();
+
+        ctx.font         = `italic 600 ${TEXT_FS}px 'Cormorant Garamond', serif`;
+        ctx.textAlign    = 'center';
+        ctx.textBaseline = 'alphabetic';
+        ctx.fillStyle    = `rgba(0,212,255,0.72)`;
+        ctx.fillText('x double dot', CX, TEXT_BASELINE);
         ctx.restore();
-    }
 
-    // ── Text particles ──
-    if (particles && textRaw > 0) {
-        // Use additive blending so overlapping particles glow brighter
-        ctx.save();
-        ctx.globalCompositeOperation = 'lighter';
-        const pr = DOT_R * 0.30;
-
-        particles.forEach(p => {
-            const local = Math.max(0, (textRaw - p.delay) / (1.0 - p.delay * 0.5));
-            if (local <= 0) return;
-            const e = easeOut4(Math.min(local, 1));
-            const x = p.sx + (p.tx - p.sx) * e;
-            const y = p.sy + (p.ty - p.sy) * e;
-            const a = easeOut3(Math.min(local, 1)) * 0.55;
-
-            ctx.fillStyle = `rgba(0,212,255,${a})`;
-            ctx.beginPath();
-            ctx.arc(x, y, pr * 2, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.fillStyle = `rgba(200,240,255,${a * 0.7})`;
-            ctx.beginPath();
-            ctx.arc(x, y, pr, 0, Math.PI * 2);
-            ctx.fill();
-        });
-
-        ctx.restore();
+        // Soft glow at the leading edge of the reveal (the "pen tip")
+        const edgeX = Math.min(clipRight, textLeft + TW);
+        if (edgeX > textLeft && edgeX < textLeft + TW + 5) {
+            const edgeCY = TEXT_BASELINE - TEXT_FS * 0.4;
+            const eg = ctx.createRadialGradient(edgeX, edgeCY, 0, edgeX, edgeCY, TEXT_FS * 0.65);
+            eg.addColorStop(0, 'rgba(150,230,255,0.22)');
+            eg.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = eg;
+            ctx.beginPath(); ctx.arc(edgeX, edgeCY, TEXT_FS * 0.65, 0, Math.PI*2); ctx.fill();
+        }
     }
 }
 
-// ── Start once font is ready ───────────────────────────────────────────
-document.fonts.ready.then(() => {
-    requestAnimationFrame(frame);
-});
+// ── Start ─────────────────────────────────────────────────────────────
+document.fonts.ready.then(() => requestAnimationFrame(frame));
 
 setTimeout(() => {
     const h = document.getElementById('hint');
     if (h) h.style.opacity = '0';
-}, T_LOOP + 800);
+}, T_LOOP + 600);
 </script>
 </body>
 </html>

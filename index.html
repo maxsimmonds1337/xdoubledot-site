@@ -60,6 +60,7 @@
             line-height: 1;
         }
 
+        /* Static diaeresis fallback — hidden when JS canvas dots are active */
         .logo::before {
             content: '¨';
             position: absolute;
@@ -71,7 +72,9 @@
             font-family: 'Times New Roman', serif;
             color: var(--accent);
             pointer-events: none;
+            transition: opacity 0.6s;
         }
+        body.dots-active .logo::before { opacity: 0; }
 
         nav {
             display: flex;
@@ -974,6 +977,303 @@
         <p class="section-sub">We're looking for early partners — satellite operators, investors, and research collaborators who believe the next decade of space belongs to intelligent, sovereign propulsion. Get in touch.</p>
         <a href="mailto:maxsimmonds1337@gmail.com" class="btn btn-primary" style="margin-top: 8px;">maxsimmonds1337@gmail.com</a>
     </section>
+
+    <!-- ── Orbiting dots overlay ─────────────────────────────────────── -->
+    <script>
+    (function () {
+        // ── Canvas ──────────────────────────────────────────────────────────
+        const cv  = document.createElement('canvas');
+        cv.style.cssText = 'position:fixed;top:0;left:0;pointer-events:none;z-index:9000';
+        document.body.appendChild(cv);
+        const ctx = cv.getContext('2d');
+        const dpr = window.devicePixelRatio || 1;
+
+        function resize() {
+            cv.width  = window.innerWidth  * dpr;
+            cv.height = window.innerHeight * dpr;
+            cv.style.width  = window.innerWidth  + 'px';
+            cv.style.height = window.innerHeight + 'px';
+        }
+        resize();
+        window.addEventListener('resize', () => { resize(); rebuildTargets(); });
+
+        // ── Easing ──────────────────────────────────────────────────────────
+        const easeInOut = t => t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+        const easeOut3  = t => 1 - Math.pow(1-t, 3);
+        const easeOut5  = t => 1 - Math.pow(1-t, 5);
+
+        // ── Cursor / touch tracking ──────────────────────────────────────────
+        // Default: viewport centre — works as mobile fallback too
+        let curX = window.innerWidth * 0.5, curY = window.innerHeight * 0.35;
+        window.addEventListener('mousemove', e => { curX = e.clientX; curY = e.clientY; });
+        window.addEventListener('touchmove', e => {
+            if (e.touches[0]) { curX = e.touches[0].clientX; curY = e.touches[0].clientY; }
+        }, { passive: true });
+
+        // ── x-target discovery ───────────────────────────────────────────────
+        // Returns [{docX, docY, isHome}] — all in document coordinates
+        let xTargets = [];
+
+        function findXTargets() {
+            const out = [], seen = new Set();
+            function scan(el, isHome) {
+                const wk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+                let node;
+                while ((node = wk.nextNode())) {
+                    const t = node.textContent;
+                    for (let i = 0; i < t.length; i++) {
+                        const ch = t[i];
+                        if (ch !== 'x' && ch !== 'X' && ch !== 'ẍ') continue;
+                        const rng = document.createRange();
+                        rng.setStart(node, i); rng.setEnd(node, i + 1);
+                        const r = rng.getBoundingClientRect();
+                        if (r.width < 2) continue;
+                        const docX = r.left + window.scrollX + r.width  * 0.5;
+                        const docY = r.top  + window.scrollY + r.height * 0.5;
+                        const key  = `${Math.round(docX)},${Math.round(docY)}`;
+                        if (!seen.has(key)) { seen.add(key); out.push({ docX, docY, isHome: !!isHome }); }
+                    }
+                }
+            }
+            // Mark the header logo as home first (seen-set prevents duplicate)
+            const logoEl = document.querySelector('header .logo');
+            if (logoEl) scan(logoEl, true);
+            // Then sweep the entire page for every x/X/ẍ character
+            scan(document.body, false);
+            return out;
+        }
+
+        let rebuildTimer = null;
+        function rebuildTargets() {
+            clearTimeout(rebuildTimer);
+            rebuildTimer = setTimeout(() => { xTargets = findXTargets(); }, 200);
+        }
+
+        // ── Glow dot renderer ────────────────────────────────────────────────
+        function drawDot(x, y, r, a) {
+            if (a < 0.005) return;
+            const g = ctx.createRadialGradient(x, y, 0, x, y, r * 7);
+            g.addColorStop(0,   `rgba(0,212,255,${a * 0.40})`);
+            g.addColorStop(0.4, `rgba(0,212,255,${a * 0.10})`);
+            g.addColorStop(1,   'rgba(0,0,0,0)');
+            ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r*7, 0, Math.PI*2); ctx.fill();
+            const g2 = ctx.createRadialGradient(x, y, 0, x, y, r * 2);
+            g2.addColorStop(0, `rgba(220,248,255,${a * 0.88})`);
+            g2.addColorStop(1, `rgba(0,212,255,${a * 0.10})`);
+            ctx.fillStyle = g2; ctx.beginPath(); ctx.arc(x, y, r*2, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = `rgba(255,255,255,${a})`;
+            ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fill();
+        }
+
+        // ── Logo geometry ────────────────────────────────────────────────────
+        // Returns diaeresis targets + orbit radius in viewport px (not canvas px)
+        function getLogoGeo() {
+            const el = document.querySelector('header .logo');
+            if (!el) return null;
+            const r  = el.getBoundingClientRect();
+            const cx = r.left + r.width  * 0.5;
+            const cy = r.top  + r.height * 0.5;
+            // Diaeresis dot positions: above the x, ±~16% of element width apart
+            const sep  = r.width  * 0.16;
+            const rise = r.height * 0.40;
+            return {
+                cx, cy,
+                orbitR: Math.max(r.width, r.height) * 1.15,  // orbit radius
+                t0: { x: cx - sep, y: cy - rise },            // left diaeresis
+                t1: { x: cx + sep, y: cy - rise }             // right diaeresis
+            };
+        }
+
+        // ── Physics dots (two independent spring objects) ────────────────────
+        const dots = [
+            { x: 0, y: 0, vx: 0, vy: 0 },
+            { x: 0, y: 0, vx: 0, vy: 0 }
+        ];
+
+        function springDot(dot, tx, ty, k, damp) {
+            dot.vx += (tx - dot.x) * k; dot.vy += (ty - dot.y) * k;
+            dot.vx *= damp;              dot.vy *= damp;
+            dot.x  += dot.vx;           dot.y  += dot.vy;
+        }
+
+        // ── Home cycle constants ─────────────────────────────────────────────
+        const T_ORBIT   = 3000;   // ms for one orbit + spiral-in
+        const T_REST    = 1000;   // ms resting at diaeresis position
+        const T_CYCLE   = T_ORBIT + T_REST;
+        const SPIRAL_AT = 0.58;   // fraction of T_ORBIT before radius decays
+
+        // ── Explore state ────────────────────────────────────────────────────
+        let visitTarget  = null;
+        let visitTimer   = 0;
+        const VISIT_MS   = 2500;
+        const ATTRACT_PX = 160;   // px from cursor → trigger a visit
+        const VISIT_COOL = 8000;  // ms before re-visiting same target
+        const cooldowns  = new Map();
+
+        // Explore orbit (persists across frames)
+        let exploreAngle = 0;
+        let exploreR     = 18 * dpr;
+        let exploreRV    = 0;
+
+        // ── Mode ─────────────────────────────────────────────────────────────
+        let mode      = 'home';  // 'home' | 'explore'
+        let homeEpoch = null;    // ts when current HOME cycle began
+
+        let lastTs = null;
+
+        // ── Frame ─────────────────────────────────────────────────────────────
+        function frame(ts) {
+            requestAnimationFrame(frame);
+            if (!lastTs) { lastTs = ts; return; }
+            const dt = Math.min(ts - lastTs, 50);
+            lastTs = ts;
+
+            const scrollY  = window.scrollY;
+            const docH     = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+            const scrollPc = scrollY / docH;
+            const vW       = window.innerWidth, vH = window.innerHeight;
+
+            // ── Mode switch ────────────────────────────────────────────────
+            if (scrollPc < 0.05 && mode === 'explore') {
+                mode = 'home';
+                homeEpoch = ts;
+                visitTarget = null;
+            } else if (scrollPc >= 0.05 && mode === 'home') {
+                mode = 'explore';
+                // Seed explore angle from current dot position so no jump
+                exploreAngle = Math.atan2(dots[0].y - curY * dpr, dots[0].x - curX * dpr);
+            }
+
+            ctx.clearRect(0, 0, cv.width, cv.height);
+            const DR = 2.6 * dpr;
+
+            // ════════════════ HOME mode ═══════════════════════════════════════
+            if (mode === 'home') {
+                if (!homeEpoch) homeEpoch = ts;
+                const geo = getLogoGeo();
+                if (!geo) return;
+
+                const cycleT = (ts - homeEpoch) % T_CYCLE;
+                const inRest = cycleT >= T_ORBIT;
+
+                let p0, p1;
+
+                if (inRest) {
+                    // Dots rest at diaeresis positions (stiff spring snap)
+                    springDot(dots[0], geo.t0.x * dpr, geo.t0.y * dpr, 0.18, 0.72);
+                    springDot(dots[1], geo.t1.x * dpr, geo.t1.y * dpr, 0.18, 0.72);
+                } else {
+                    // Orbit → spiral settle
+                    const orbitP  = cycleT / T_ORBIT;
+                    const spiralP = Math.max(0, (orbitP - SPIRAL_AT) / (1 - SPIRAL_AT));
+                    const phase1P = Math.min(orbitP / SPIRAL_AT, 1.0);
+                    const R       = geo.orbitR * dpr * (1 - easeOut5(spiralP));
+                    const driftT  = easeOut3(spiralP);
+                    const theta   = phase1P  * Math.PI * 3.8
+                                  + spiralP  * Math.PI * 1.2 * (1 - easeInOut(spiralP) * 0.8);
+                    const a1 = -Math.PI * 0.5 - theta;
+                    const a2 = a1 + Math.PI * 0.9;
+
+                    const lcx = geo.cx * dpr, lcy = geo.cy * dpr;
+                    // Each dot's orbit centre drifts toward its own diaeresis target
+                    const c0x = lcx + (geo.t0.x * dpr - lcx) * driftT;
+                    const c0y = lcy + (geo.t0.y * dpr - lcy) * driftT;
+                    const c1x = lcx + (geo.t1.x * dpr - lcx) * driftT;
+                    const c1y = lcy + (geo.t1.y * dpr - lcy) * driftT;
+
+                    const tp0 = { x: c0x + Math.cos(a1) * R, y: c0y + Math.sin(a1) * R };
+                    const tp1 = { x: c1x + Math.cos(a2) * R, y: c1y + Math.sin(a2) * R };
+
+                    // Light spring so motion is fluid, not rigid
+                    springDot(dots[0], tp0.x, tp0.y, 0.22, 0.70);
+                    springDot(dots[1], tp1.x, tp1.y, 0.22, 0.70);
+                }
+
+                drawDot(dots[0].x, dots[0].y, DR, inRest ? 0.92 : 0.86);
+                drawDot(dots[1].x, dots[1].y, DR, inRest ? 0.92 : 0.86);
+
+            // ════════════════ EXPLORE mode ════════════════════════════════════
+            } else {
+                const now = performance.now();
+
+                // Expire or keep current visit
+                if (visitTarget) {
+                    visitTimer -= dt;
+                    const vy = visitTarget.docY - scrollY;
+                    if (visitTimer <= 0 || vy < -80 || vy > vH + 80) visitTarget = null;
+                }
+
+                // Find a new x to visit (nearest to cursor, subject to cooldown)
+                if (!visitTarget) {
+                    let bestDist = ATTRACT_PX, best = null;
+                    xTargets.forEach(t => {
+                        if (t.isHome) return;
+                        if ((cooldowns.get(t) || 0) > now) return;
+                        const vy = t.docY - scrollY;
+                        if (vy < 40 || vy > vH - 40) return;
+                        const dist = Math.hypot(t.docX - curX, vy - curY);
+                        if (dist < bestDist) { bestDist = dist; best = t; }
+                    });
+                    if (best) {
+                        visitTarget = best;
+                        visitTimer  = VISIT_MS;
+                        cooldowns.set(best, now + VISIT_COOL);
+                    }
+                }
+
+                // Determine orbit focus in viewport px
+                let focVP_X, focVP_Y, targetR, angSpeedExtra, alpha;
+                if (visitTarget) {
+                    focVP_X      = visitTarget.docX;
+                    focVP_Y      = visitTarget.docY - scrollY;
+                    targetR      = 14 * dpr;
+                    angSpeedExtra = 0.0012;
+                    alpha        = 0.76;
+                } else {
+                    // Follow cursor (or touch / viewport-centre fallback)
+                    focVP_X      = curX;
+                    focVP_Y      = curY;
+                    targetR      = 19 * dpr;
+                    angSpeedExtra = 0;
+                    alpha        = 0.58;
+                }
+
+                // Spring orbit radius
+                exploreRV += (targetR - exploreR) * 0.05;
+                exploreRV *= 0.84;
+                exploreR  += exploreRV;
+
+                exploreAngle += (0.0020 + angSpeedExtra) * dt;
+
+                const focX = focVP_X * dpr, focY = focVP_Y * dpr;
+                const tp0 = { x: focX + Math.cos(exploreAngle)           * exploreR,
+                              y: focY + Math.sin(exploreAngle)           * exploreR };
+                const tp1 = { x: focX + Math.cos(exploreAngle + Math.PI) * exploreR,
+                              y: focY + Math.sin(exploreAngle + Math.PI) * exploreR };
+
+                springDot(dots[0], tp0.x, tp0.y, 0.11, 0.76);
+                springDot(dots[1], tp1.x, tp1.y, 0.11, 0.76);
+
+                drawDot(dots[0].x, dots[0].y, DR, alpha);
+                drawDot(dots[1].x, dots[1].y, DR, alpha);
+            }
+        }
+
+        // ── Init ─────────────────────────────────────────────────────────────
+        document.fonts.ready.then(() => {
+            xTargets = findXTargets();
+            const geo = getLogoGeo();
+            if (geo) {
+                dots[0].x = geo.t0.x * dpr; dots[0].y = geo.t0.y * dpr;
+                dots[1].x = geo.t1.x * dpr; dots[1].y = geo.t1.y * dpr;
+            }
+            homeEpoch = performance.now();
+            document.body.classList.add('dots-active');
+            requestAnimationFrame(frame);
+        });
+
+    })();
+    </script>
 
     <!-- ── Footer ─────────────────────────────────────────────────────── -->
     <footer>
