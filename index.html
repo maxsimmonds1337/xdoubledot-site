@@ -1043,13 +1043,12 @@
             d.x  += d.vx;         d.y  += d.vy;
         }
 
-        // ── Cycle constants ──────────────────────────────────────────────────
-        const T_ORBIT   = 3000;   // ms: one orbit + spiral-in
-        const T_REST    = 2000;   // ms: floating at diaeresis
-        const T_CYCLE   = T_ORBIT + T_REST;
-        const SPIRAL_AT = 0.58;
+        // ── Constants ────────────────────────────────────────────────────────
+        const T_ORBIT   = 6000;   // ms: orbit + spiral-in (slow, unhurried)
+        const SPIRAL_AT = 0.60;   // fraction before radius decays
 
-        let epoch = null;
+        let epoch  = null;
+        let done   = false;       // true once settled — just float from then on
         let lastTs = null;
 
         // ── Frame ────────────────────────────────────────────────────────────
@@ -1062,42 +1061,40 @@
             if (!geo) return;
 
             ctx.clearRect(0, 0, cv.width, cv.height);
+            const DR = 2.6 * dpr;
 
-            const cycleT = (ts - epoch) % T_CYCLE;
-            const inRest = cycleT >= T_ORBIT;
-            const DR     = 2.6 * dpr;
-
-            if (inRest) {
-                // Gentle float: sinusoidal vertical drift around diaeresis position
-                const restT  = (cycleT - T_ORBIT) / T_REST;          // 0→1
-                const bob    = Math.sin(restT * Math.PI * 2) * 1.4;  // ±1.4 px
-                springDot(dots[0], geo.t0.x*dpr, (geo.t0.y + bob)*dpr, 0.16, 0.74);
-                springDot(dots[1], geo.t1.x*dpr, (geo.t1.y + bob)*dpr, 0.16, 0.74);
+            if (done) {
+                // Gentle float forever after settling
+                const bob = Math.sin(ts * 0.00090) * 1.4;  // ±1.4 px, ~7s period
+                springDot(dots[0], geo.t0.x*dpr, (geo.t0.y + bob)*dpr, 0.14, 0.76);
+                springDot(dots[1], geo.t1.x*dpr, (geo.t1.y + bob)*dpr, 0.14, 0.76);
                 drawDot(dots[0].x, dots[0].y, DR, 0.90);
                 drawDot(dots[1].x, dots[1].y, DR, 0.90);
-            } else {
-                // Orbit → spiral settle
-                const orbitP  = cycleT / T_ORBIT;
-                const spiralP = Math.max(0, (orbitP - SPIRAL_AT) / (1 - SPIRAL_AT));
-                const phase1P = Math.min(orbitP / SPIRAL_AT, 1.0);
-                const R       = geo.orbitR * dpr * (1 - easeOut5(spiralP));
-                const driftT  = easeOut3(spiralP);
-                const theta   = phase1P * Math.PI * 3.8
-                              + spiralP * Math.PI * 1.2 * (1 - easeInOut(spiralP) * 0.8);
-                const a1 = -Math.PI * 0.5 - theta;
-                const a2 = a1 + Math.PI * 0.9;
-
-                const lcx = geo.cx*dpr, lcy = geo.cy*dpr;
-                const c0x = lcx + (geo.t0.x*dpr - lcx) * driftT;
-                const c0y = lcy + (geo.t0.y*dpr - lcy) * driftT;
-                const c1x = lcx + (geo.t1.x*dpr - lcx) * driftT;
-                const c1y = lcy + (geo.t1.y*dpr - lcy) * driftT;
-
-                springDot(dots[0], c0x + Math.cos(a1)*R, c0y + Math.sin(a1)*R, 0.22, 0.70);
-                springDot(dots[1], c1x + Math.cos(a2)*R, c1y + Math.sin(a2)*R, 0.22, 0.70);
-                drawDot(dots[0].x, dots[0].y, DR, 0.84);
-                drawDot(dots[1].x, dots[1].y, DR, 0.84);
+                return;
             }
+
+            const orbitP  = Math.min((ts - epoch) / T_ORBIT, 1.0);
+            const spiralP = Math.max(0, (orbitP - SPIRAL_AT) / (1 - SPIRAL_AT));
+            const phase1P = Math.min(orbitP / SPIRAL_AT, 1.0);
+            const R       = geo.orbitR * dpr * (1 - easeOut5(spiralP));
+            const driftT  = easeOut3(spiralP);
+            const theta   = phase1P * Math.PI * 2.8          // ~1.4 slow revolutions
+                          + spiralP * Math.PI * 0.9 * (1 - easeInOut(spiralP) * 0.8);
+            const a1 = -Math.PI * 0.5 - theta;
+            const a2 = a1 + Math.PI * 0.9;
+
+            const lcx = geo.cx*dpr, lcy = geo.cy*dpr;
+            const c0x = lcx + (geo.t0.x*dpr - lcx) * driftT;
+            const c0y = lcy + (geo.t0.y*dpr - lcy) * driftT;
+            const c1x = lcx + (geo.t1.x*dpr - lcx) * driftT;
+            const c1y = lcy + (geo.t1.y*dpr - lcy) * driftT;
+
+            springDot(dots[0], c0x + Math.cos(a1)*R, c0y + Math.sin(a1)*R, 0.22, 0.70);
+            springDot(dots[1], c1x + Math.cos(a2)*R, c1y + Math.sin(a2)*R, 0.22, 0.70);
+            drawDot(dots[0].x, dots[0].y, DR, 0.84);
+            drawDot(dots[1].x, dots[1].y, DR, 0.84);
+
+            if (orbitP >= 1.0) done = true;
         }
 
         // ── Init ─────────────────────────────────────────────────────────────
