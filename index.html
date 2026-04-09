@@ -1051,6 +1051,14 @@
         let done   = false;       // true once settled — just float from then on
         let lastTs = null;
 
+        // ── Scroll inertia ───────────────────────────────────────────────────
+        let lastScrollY        = window.scrollY;
+        let pendingScrollDelta = 0;
+        window.addEventListener('scroll', () => {
+            pendingScrollDelta += window.scrollY - lastScrollY;
+            lastScrollY = window.scrollY;
+        }, { passive: true });
+
         // ── Frame ────────────────────────────────────────────────────────────
         function frame(ts) {
             requestAnimationFrame(frame);
@@ -1064,6 +1072,14 @@
             const DR = 2.6 * dpr;
 
             if (done) {
+                // Apply scroll impulse — scroll down kicks dots upward
+                if (pendingScrollDelta !== 0) {
+                    const impulse = pendingScrollDelta * -0.18 * dpr;
+                    dots[0].vy += impulse;
+                    dots[1].vy += impulse;
+                    pendingScrollDelta = 0;
+                }
+
                 // Gentle float forever after settling
                 const bob = Math.sin(ts * 0.00090) * 1.4;  // ±1.4 px, ~7s period
                 springDot(dots[0], geo.t0.x*dpr, (geo.t0.y + bob)*dpr, 0.14, 0.76);
@@ -1072,6 +1088,7 @@
                 drawDot(dots[1].x, dots[1].y, DR, 0.90);
                 return;
             }
+            pendingScrollDelta = 0; // discard scroll during orbit
 
             const orbitP  = Math.min((ts - epoch) / T_ORBIT, 1.0);
             const spiralP = Math.max(0, (orbitP - SPIRAL_AT) / (1 - SPIRAL_AT));
