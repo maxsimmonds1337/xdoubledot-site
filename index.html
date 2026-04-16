@@ -638,9 +638,11 @@
     <!-- ── Aegis ─────────────────────────────────────────────────────── -->
     <section id="aegis" style="padding: 0; background: var(--bg); border-top: 1px solid var(--border);">
         <div style="display: grid; grid-template-columns: 1.1fr 1fr; min-height: 560px;">
-            <!-- Canvas -->
-            <div style="position: relative; overflow: hidden; background: #00000a;">
-                <canvas id="aegis-canvas" style="display:block; width:100%; height:100%; min-height:560px;"></canvas>
+            <!-- Simulation image -->
+            <div style="position: relative; overflow: hidden; background: #00000a; display:flex; align-items:center; justify-content:center;">
+                <img src="assets/het_bfield_channel_exit.png"
+                     alt="2D FD magnetostatic simulation — channel exit field lines (N→S crossing)"
+                     style="width:100%; height:100%; object-fit:cover; min-height:560px; display:block;">
             </div>
             <!-- Text -->
             <div style="padding: 80px 80px 80px 64px; display: flex; flex-direction: column; justify-content: center; border-left: 1px solid var(--border);">
@@ -650,7 +652,7 @@
                     In a Hall thruster, the shape of the magnetic field is everything. Too flat and it cuts straight through the plasma into the channel walls — ions bombard the ceramic and your thruster wears out in months. Shape it right and the field lines run almost perfectly parallel to those walls, dramatically reducing the erosion.
                 </p>
                 <p style="color:var(--text-muted); font-size:0.95rem; line-height:1.85; margin-bottom:36px;">
-                    Aegis runs three electromagnet coils through a reinforcement learning controller, continuously holding that optimal field topology during flight. Not a lookup table, not a fixed operating point — an agent that actively responds to changing plasma conditions, temperature drift, and mission phase. The graphic shows the field line geometry it's maintaining.
+                    Aegis runs three electromagnet coils through AURORA — our neural PPU controller — continuously holding that optimal field topology during flight. Not a lookup table, not a fixed operating point — an agent that actively responds to changing plasma conditions, temperature drift, and mission phase. The image is a real output from our 2D finite-difference magnetostatic solver, showing the channel exit field topology the system maintains.
                 </p>
                 <div style="display:flex; flex-direction:column; gap:14px;">
                     <div style="display:flex; gap:14px; align-items:flex-start;">
@@ -677,7 +679,7 @@
     <script>
     (function () {
         const canvas = document.getElementById('aegis-canvas');
-        if (!canvas) return;
+        if (!canvas) return; // canvas removed — script is now a no-op
         const ctx = canvas.getContext('2d');
         const dpr = window.devicePixelRatio || 1;
 
@@ -841,6 +843,31 @@
         window.addEventListener('resize', resize);
     })();
     </script>
+
+    <!-- ── AURORA ────────────────────────────────────────────────────── -->
+    <section id="aurora" style="background: var(--surface); border-top: 1px solid var(--border);">
+        <div class="section-label">AURORA</div>
+        <h2 class="section-title">Adaptive Unified Real-time<br>Operation and Regulation Algorithm</h2>
+        <p class="section-sub">AURORA is the neural PPU controller that runs on-board — named for the Aurora Borealis, the visual signature of charged particles guided by a magnetic field. It sits alongside the Aegis hardware and holds the optimal operating point in real time.</p>
+
+        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 48px;">
+            <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 32px 28px;">
+                <div style="font-size:0.72rem; font-weight:600; letter-spacing:0.12em; color:var(--accent); text-transform:uppercase; margin-bottom:12px;">AURORA v1 — Current</div>
+                <h3 style="font-size:1.1rem; font-weight:600; margin-bottom:12px; color:var(--text);">Coil current optimiser</h3>
+                <p style="font-size:0.875rem; color:var(--text-muted); line-height:1.75;">SAC RL agent sets three coil currents to minimise cathode ion flux and wall erosion. Trained on the Aegis physics surrogate. Deployed as microcontroller firmware. Runs autonomously — no ground commands needed.</p>
+            </div>
+            <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 32px 28px; opacity:0.65;">
+                <div style="font-size:0.72rem; font-weight:600; letter-spacing:0.12em; color:var(--text-muted); text-transform:uppercase; margin-bottom:12px;">AURORA v2 — Post hardware v1</div>
+                <h3 style="font-size:1.1rem; font-weight:600; margin-bottom:12px; color:var(--text);">Breathing mode control</h3>
+                <p style="font-size:0.875rem; color:var(--text-muted); line-height:1.75;">Adds discharge voltage modulation to suppress the 10–30 kHz breathing mode oscillation. Requires real firing data. Gated on hardware v1 validation.</p>
+            </div>
+            <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 32px 28px; opacity:0.65;">
+                <div style="font-size:0.72rem; font-weight:600; letter-spacing:0.12em; color:var(--text-muted); text-transform:uppercase; margin-bottom:12px;">AURORA v3 — Fleet</div>
+                <h3 style="font-size:1.1rem; font-weight:600; margin-bottom:12px; color:var(--text);">Lifetime-aware adaptation</h3>
+                <p style="font-size:0.875rem; color:var(--text-muted); line-height:1.75;">Learns thruster degradation trajectory from telemetry. Adjusts operating points as cathode and channel age. Updated parameters uplinked from ground fleet analytics.</p>
+            </div>
+        </div>
+    </section>
 
     <!-- ── Product ────────────────────────────────────────────────────── -->
     <section id="product" style="background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
