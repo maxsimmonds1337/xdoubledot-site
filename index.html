@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ẍ — Intelligent Electric Propulsion</title>
-    <meta name="description" content="Building AI-optimised Hall Effect Thrusters for the next generation of satellite constellations. ITAR-free, Krypton-native, designed for VLEO.">
+    <meta name="description"
+        content="Building AI-optimised Hall Effect Thrusters for the next generation of satellite constellations. ITAR-free, Krypton-native, designed for VLEO.">
     <link rel="icon"
         href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cstyle%3E text %7B fill: %2300d4ff; font-family: 'Cormorant Garamond', serif; font-style: italic; font-weight: 600; %7D %3C/style%3E%3Ctext y='0.8em' x='50%25' text-anchor='middle' font-size='90'%3Eẍ%3C/text%3E%3C/svg%3E">
     <link
@@ -23,9 +24,15 @@
             --border: rgba(255, 255, 255, 0.08);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-        html { scroll-behavior: smooth; }
+        html {
+            scroll-behavior: smooth;
+        }
 
         body {
             font-family: 'Inter', sans-serif;
@@ -43,7 +50,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background: rgba(0,0,0,0.85);
+            background: rgba(0, 0, 0, 0.85);
             backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--border);
         }
@@ -74,7 +81,10 @@
             pointer-events: none;
             transition: opacity 0.6s;
         }
-        body.dots-active .logo::before { opacity: 0; }
+
+        body.dots-active .logo::before {
+            opacity: 0;
+        }
 
         nav {
             display: flex;
@@ -90,7 +100,9 @@
             transition: color 0.2s;
         }
 
-        nav a:hover { color: var(--accent); }
+        nav a:hover {
+            color: var(--accent);
+        }
 
         .nav-contact {
             padding: 8px 20px;
@@ -123,7 +135,7 @@
             right: -200px;
             width: 700px;
             height: 700px;
-            background: radial-gradient(circle, rgba(0,212,255,0.06) 0%, transparent 65%);
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.06) 0%, transparent 65%);
             pointer-events: none;
         }
 
@@ -156,7 +168,9 @@
             max-width: 820px;
         }
 
-        .hero h1 span { color: var(--accent); }
+        .hero h1 span {
+            color: var(--accent);
+        }
 
         .hero p {
             font-size: 1.1rem;
@@ -217,7 +231,9 @@
             border-right: 1px solid var(--border);
         }
 
-        .stat:last-child { border-right: none; }
+        .stat:last-child {
+            border-right: none;
+        }
 
         .stat-value {
             font-family: 'Space Grotesk', sans-serif;
@@ -281,7 +297,9 @@
             transition: background 0.2s;
         }
 
-        .pillar:hover { background: var(--surface-light); }
+        .pillar:hover {
+            background: var(--surface-light);
+        }
 
         .pillar-icon {
             width: 40px;
@@ -342,8 +360,15 @@
         }
 
         @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
         }
 
         .spec-table {
@@ -358,7 +383,9 @@
             border-bottom: 1px solid var(--border);
         }
 
-        .spec-row:last-child { border-bottom: none; }
+        .spec-row:last-child {
+            border-bottom: none;
+        }
 
         .spec-key {
             padding: 14px 20px;
@@ -399,7 +426,9 @@
             padding: 0 0 44px 36px;
         }
 
-        .roadmap-item:last-child { padding-bottom: 0; }
+        .roadmap-item:last-child {
+            padding-bottom: 0;
+        }
 
         .roadmap-dot {
             position: absolute;
@@ -420,7 +449,7 @@
         .roadmap-dot.active {
             background: var(--bg);
             border-color: var(--accent);
-            box-shadow: 0 0 0 4px rgba(0,212,255,0.15);
+            box-shadow: 0 0 0 4px rgba(0, 212, 255, 0.15);
         }
 
         .roadmap-phase {
@@ -460,7 +489,9 @@
             transition: border-color 0.2s;
         }
 
-        .team-card:hover { border-color: rgba(0,212,255,0.3); }
+        .team-card:hover {
+            border-color: rgba(0, 212, 255, 0.3);
+        }
 
         .team-photo {
             width: 100%;
@@ -530,7 +561,9 @@
             transition: color 0.2s;
         }
 
-        footer a:hover { color: var(--accent); }
+        footer a:hover {
+            color: var(--accent);
+        }
 
         .footer-logo {
             font-family: 'Cormorant Garamond', serif;
@@ -544,19 +577,54 @@
 
         /* ── Responsive ── */
         @media (max-width: 900px) {
-            header, .hero, section, footer { padding-left: 32px; padding-right: 32px; }
-            .hero h1 { font-size: 2.6rem; }
-            .stats { grid-template-columns: repeat(2, 1fr); }
-            .stat { padding: 28px 32px; border-bottom: 1px solid var(--border); }
-            .pillars { grid-template-columns: 1fr; }
-            .product-layout { grid-template-columns: 1fr; gap: 48px; }
-            .team-grid { grid-template-columns: 1fr 1fr; }
+
+            header,
+            .hero,
+            section,
+            footer {
+                padding-left: 32px;
+                padding-right: 32px;
+            }
+
+            .hero h1 {
+                font-size: 2.6rem;
+            }
+
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .stat {
+                padding: 28px 32px;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .pillars {
+                grid-template-columns: 1fr;
+            }
+
+            .product-layout {
+                grid-template-columns: 1fr;
+                gap: 48px;
+            }
+
+            .team-grid {
+                grid-template-columns: 1fr 1fr;
+            }
         }
 
         @media (max-width: 600px) {
-            .stats { grid-template-columns: 1fr; }
-            .team-grid { grid-template-columns: 1fr; }
-            nav { gap: 20px; }
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .team-grid {
+                grid-template-columns: 1fr;
+            }
+
+            nav {
+                gap: 20px;
+            }
         }
     </style>
 </head>
@@ -578,19 +646,21 @@
     <div class="hero">
         <div class="hero-label">Electric Propulsion · VLEO · Krypton</div>
         <h1>Accelerating<br><span>your mission</span></h1>
-        <p>We are building AI-optimised Hall Effect Thrusters that extend satellite lifetime and enable continuous drag compensation in Very Low Earth Orbit — without relying on US-export-controlled components.</p>
+        <p>We are building AI-optimised Hall Effect Thrusters that extend satellite lifetime and enable continuous drag
+            compensation in Very Low Earth Orbit — without relying on US-export-controlled components.</p>
         <div class="cta-group">
             <a href="#product" class="btn btn-primary">Our Technology</a>
             <a href="#contact" class="btn btn-outline">Get in Touch</a>
         </div>
+
+        <!-- ── Hero 3D render ─────────────────────────────────────────────── -->
+        <div
+            style="background:#00000a; border-top:1px solid var(--border); overflow:hidden; max-height:540px; display:flex; align-items:center; justify-content:center;">
+            <img src="assets/het_3d_render.png" alt="xdoubledot Hall Effect Thruster — 3D render"
+                style="width:100%; max-width:1100px; height:auto; display:block; object-fit:contain;">
+        </div>
     </div>
 
-    <!-- ── Hero 3D render ─────────────────────────────────────────────── -->
-    <div style="background:#00000a; border-top:1px solid var(--border); overflow:hidden; max-height:540px; display:flex; align-items:center; justify-content:center;">
-        <img src="assets/het_3d_render.png"
-             alt="xdoubledot Hall Effect Thruster — 3D render"
-             style="width:100%; max-width:1100px; height:auto; display:block; object-fit:contain;">
-    </div>
 
     <!-- ── Stats ──────────────────────────────────────────────────────── -->
     <div class="stats">
@@ -616,28 +686,40 @@
     <section id="technology">
         <div class="section-label">Technology</div>
         <h2 class="section-title">Designed from first principles for VLEO</h2>
-        <p class="section-sub">Hall Effect Thrusters have proven themselves in GEO and MEO. The frontier is VLEO — altitudes below 450 km where atmospheric drag is significant and thruster lifetime is the limiting factor. We've built a propulsion stack around solving that problem.</p>
+        <p class="section-sub">Hall Effect Thrusters have proven themselves in GEO and MEO. The frontier is VLEO —
+            altitudes below 450 km where atmospheric drag is significant and thruster lifetime is the limiting factor.
+            We've built a propulsion stack around solving that problem.</p>
 
         <div class="pillars">
             <div class="pillar">
                 <div class="pillar-icon">⚡</div>
                 <h3>Aegis — AI Magnetic Optimisation</h3>
-                <p>Our core software, Aegis, uses reinforcement learning to optimise the thruster's magnetic field topology. It minimises erosive ion flux to the channel walls, extending operational lifetime. Simulations show a 27% reduction in wall erosion flux and a 1.38× lifetime multiplier over the unoptimised baseline.</p>
+                <p>Our core software, Aegis, uses reinforcement learning to optimise the thruster's magnetic field
+                    topology. It minimises erosive ion flux to the channel walls, extending operational lifetime.
+                    Simulations show a 27% reduction in wall erosion flux and a 1.38× lifetime multiplier over the
+                    unoptimised baseline.</p>
             </div>
             <div class="pillar">
                 <div class="pillar-icon">🔵</div>
                 <h3>Krypton-Native Architecture</h3>
-                <p>We design around Krypton from day one. Kr offers higher specific impulse per unit cost than Xenon, is abundant in European supply chains, and is not subject to the same geopolitical supply risks. Our magnetic field profiles and channel geometry are co-optimised for Kr's ionisation physics.</p>
+                <p>We design around Krypton from day one. Kr offers higher specific impulse per unit cost than Xenon, is
+                    abundant in European supply chains, and is not subject to the same geopolitical supply risks. Our
+                    magnetic field profiles and channel geometry are co-optimised for Kr's ionisation physics.</p>
             </div>
             <div class="pillar">
                 <div class="pillar-icon">🛡️</div>
                 <h3>Magnetically Shielded Pole Geometry</h3>
-                <p>We apply flux-surface-matched pole piece geometry (following Mikellides 2014) to shape the magnetic field so that equipotential surfaces run parallel to the channel walls. This near-eliminates the radial electric field component responsible for wall bombardment — the dominant wear mechanism in conventional thrusters.</p>
+                <p>We apply flux-surface-matched pole piece geometry (following Mikellides 2014) to shape the magnetic
+                    field so that equipotential surfaces run parallel to the channel walls. This near-eliminates the
+                    radial electric field component responsible for wall bombardment — the dominant wear mechanism in
+                    conventional thrusters.</p>
             </div>
             <div class="pillar">
                 <div class="pillar-icon">🌍</div>
                 <h3>ITAR-Free by Design</h3>
-                <p>Every component — from the discharge chamber to the power processing unit — is specified for European manufacture. No reliance on US-controlled technology means our customers can integrate without export licence delays, and European operators maintain full supply chain sovereignty.</p>
+                <p>Every component — from the discharge chamber to the power processing unit — is specified for European
+                    manufacture. No reliance on US-controlled technology means our customers can integrate without
+                    export licence delays, and European operators maintain full supply chain sovereignty.</p>
             </div>
         </div>
     </section>
@@ -646,37 +728,58 @@
     <section id="aegis" style="padding: 0; background: var(--bg); border-top: 1px solid var(--border);">
         <div style="display: grid; grid-template-columns: 1.1fr 1fr; min-height: 560px;">
             <!-- Simulation image -->
-            <div style="position: relative; overflow: hidden; background: #00000a; display:flex; align-items:center; justify-content:center;">
+            <div
+                style="position: relative; overflow: hidden; background: #00000a; display:flex; align-items:center; justify-content:center;">
                 <img src="assets/het_bfield_channel_exit.png"
-                     alt="2D FD magnetostatic simulation — channel exit field lines (N→S crossing)"
-                     style="width:100%; height:100%; object-fit:cover; min-height:560px; display:block;">
+                    alt="2D FD magnetostatic simulation — channel exit field lines (N→S crossing)"
+                    style="width:100%; height:100%; object-fit:cover; min-height:560px; display:block;">
             </div>
             <!-- Text -->
-            <div style="padding: 80px 80px 80px 64px; display: flex; flex-direction: column; justify-content: center; border-left: 1px solid var(--border);">
+            <div
+                style="padding: 80px 80px 80px 64px; display: flex; flex-direction: column; justify-content: center; border-left: 1px solid var(--border);">
                 <div class="section-label">Aegis</div>
                 <h2 class="section-title" style="max-width:100%;">The magnetic brain<br>of the thruster</h2>
                 <p style="color:var(--text-muted); font-size:0.95rem; line-height:1.85; margin-bottom:20px;">
-                    In a Hall thruster, the shape of the magnetic field is everything. Too flat and it cuts straight through the plasma into the channel walls — ions bombard the ceramic and your thruster wears out in months. Shape it right and the field lines run almost perfectly parallel to those walls, dramatically reducing the erosion.
+                    In a Hall thruster, the shape of the magnetic field is everything. Too flat and it cuts straight
+                    through the plasma into the channel walls — ions bombard the ceramic and your thruster wears out in
+                    months. Shape it right and the field lines run almost perfectly parallel to those walls,
+                    dramatically reducing the erosion.
                 </p>
                 <p style="color:var(--text-muted); font-size:0.95rem; line-height:1.85; margin-bottom:36px;">
-                    Aegis runs three electromagnet coils through AURORA — our neural PPU controller — continuously holding that optimal field topology during flight. Not a lookup table, not a fixed operating point — an agent that actively responds to changing plasma conditions, temperature drift, and mission phase. The image is a real output from our 2D finite-difference magnetostatic solver, showing the channel exit field topology the system maintains.
+                    Aegis runs three electromagnet coils through AURORA — our neural PPU controller — continuously
+                    holding that optimal field topology during flight. Not a lookup table, not a fixed operating point —
+                    an agent that actively responds to changing plasma conditions, temperature drift, and mission phase.
+                    The image is a real output from our 2D finite-difference magnetostatic solver, showing the channel
+                    exit field topology the system maintains.
                 </p>
                 <div style="display:flex; flex-direction:column; gap:14px;">
                     <div style="display:flex; gap:14px; align-items:flex-start;">
-                        <div style="width:6px; height:6px; border-radius:50%; background:var(--accent); margin-top:7px; flex-shrink:0;"></div>
-                        <span style="font-size:0.875rem; color:var(--text-muted);">Field lines run parallel to channel walls — near-zero wall ion flux</span>
+                        <div
+                            style="width:6px; height:6px; border-radius:50%; background:var(--accent); margin-top:7px; flex-shrink:0;">
+                        </div>
+                        <span style="font-size:0.875rem; color:var(--text-muted);">Field lines run parallel to channel
+                            walls — near-zero wall ion flux</span>
                     </div>
                     <div style="display:flex; gap:14px; align-items:flex-start;">
-                        <div style="width:6px; height:6px; border-radius:50%; background:var(--accent); margin-top:7px; flex-shrink:0;"></div>
-                        <span style="font-size:0.875rem; color:var(--text-muted);">Runs autonomously on-board — no ground commands needed</span>
+                        <div
+                            style="width:6px; height:6px; border-radius:50%; background:var(--accent); margin-top:7px; flex-shrink:0;">
+                        </div>
+                        <span style="font-size:0.875rem; color:var(--text-muted);">Runs autonomously on-board — no
+                            ground commands needed</span>
                     </div>
                     <div style="display:flex; gap:14px; align-items:flex-start;">
-                        <div style="width:6px; height:6px; border-radius:50%; background:var(--accent); margin-top:7px; flex-shrink:0;"></div>
-                        <span style="font-size:0.875rem; color:var(--text-muted);">Balances lifetime, thrust, and power draw simultaneously</span>
+                        <div
+                            style="width:6px; height:6px; border-radius:50%; background:var(--accent); margin-top:7px; flex-shrink:0;">
+                        </div>
+                        <span style="font-size:0.875rem; color:var(--text-muted);">Balances lifetime, thrust, and power
+                            draw simultaneously</span>
                     </div>
                     <div style="display:flex; gap:14px; align-items:flex-start;">
-                        <div style="width:6px; height:6px; border-radius:50%; background:var(--accent); margin-top:7px; flex-shrink:0;"></div>
-                        <span style="font-size:0.875rem; color:var(--text-muted);">RL agent trained on a validated 2D finite-difference physics model</span>
+                        <div
+                            style="width:6px; height:6px; border-radius:50%; background:var(--accent); margin-top:7px; flex-shrink:0;">
+                        </div>
+                        <span style="font-size:0.875rem; color:var(--text-muted);">RL agent trained on a validated 2D
+                            finite-difference physics model</span>
                     </div>
                 </div>
             </div>
@@ -684,209 +787,234 @@
     </section>
 
     <script>
-    (function () {
-        const canvas = document.getElementById('aegis-canvas');
-        if (!canvas) return; // canvas removed — script is now a no-op
-        const ctx = canvas.getContext('2d');
-        const dpr = window.devicePixelRatio || 1;
+        (function () {
+            const canvas = document.getElementById('aegis-canvas');
+            if (!canvas) return; // canvas removed — script is now a no-op
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
 
-        // Geometry (mm)
-        const IP_R = 17, OP_RI = 24, OP_RO = 31;
-        const CH_IN = 18, CH_OUT = 23, BN_T = 1.0;
-        const CH_L = 20, BY_ZB = 28;
+            // Geometry (mm)
+            const IP_R = 17, OP_RI = 24, OP_RO = 31;
+            const CH_IN = 18, CH_OUT = 23, BN_T = 1.0;
+            const CH_L = 20, BY_ZB = 28;
 
-        // Field lines: cubic Bezier [r0,z0, cp1r,cp1z, cp2r,cp2z, r3,z3]
-        // in thruster mm coords. Arcing from inner pole (r≈17) to outer pole (r≈24).
-        const FL = [
-            { b: [17,-4,  17,-13, 24,-13, 24,-4],  dim:0.20 },
-            { b: [17,-1,  17,-8,  24,-8,  24,-1],  dim:0.40 },
-            { b: [17, 0,  17,-3,  24,-3,  24, 0],  dim:1.0, key:true },  // separatrix
-            { b: [17, 2,  17,-1,  24,-1,  24, 2],  dim:0.85 },
-            { b: [17, 5,  17, 1,  24, 1,  24, 5],  dim:0.72 },
-            { b: [17, 9,  17, 5,  24, 5,  24, 9],  dim:0.62 },
-            { b: [17,14,  17,10,  24,10,  24,14],  dim:0.52 },
-            { b: [17,19,  17,15,  24,15,  24,19],  dim:0.42 },
-        ];
-        const particles = FL.map(() => ({ t: Math.random(), spd: 0.0022 + Math.random()*0.002 }));
+            // Field lines: cubic Bezier [r0,z0, cp1r,cp1z, cp2r,cp2z, r3,z3]
+            // in thruster mm coords. Arcing from inner pole (r≈17) to outer pole (r≈24).
+            const FL = [
+                {b: [17, -4, 17, -13, 24, -13, 24, -4], dim: 0.20},
+                {b: [17, -1, 17, -8, 24, -8, 24, -1], dim: 0.40},
+                {b: [17, 0, 17, -3, 24, -3, 24, 0], dim: 1.0, key: true},  // separatrix
+                {b: [17, 2, 17, -1, 24, -1, 24, 2], dim: 0.85},
+                {b: [17, 5, 17, 1, 24, 1, 24, 5], dim: 0.72},
+                {b: [17, 9, 17, 5, 24, 5, 24, 9], dim: 0.62},
+                {b: [17, 14, 17, 10, 24, 10, 24, 14], dim: 0.52},
+                {b: [17, 19, 17, 15, 24, 15, 24, 19], dim: 0.42},
+            ];
+            const particles = FL.map(() => ({t: Math.random(), spd: 0.0022 + Math.random() * 0.002}));
 
-        let W, H, S, OX, OY;
-        function resize() {
-            const rect = canvas.parentElement.getBoundingClientRect();
-            W = canvas.width  = Math.round(rect.width  * dpr);
-            H = canvas.height = Math.round(rect.height * dpr);
-            S  = Math.min(W * 0.82 / 37, H * 0.82 / 44);
-            OX = W * 0.07;
-            OY = H * 0.89 - 12 * S;  // y-position of z=0 (exit plane)
-        }
-        const cx = r => OX + r * S;
-        const cy = z => OY - z * S;
-
-        function bez(t, p0, p1, p2, p3) {
-            const u = 1-t;
-            return u*u*u*p0 + 3*u*u*t*p1 + 3*u*t*t*p2 + t*t*t*p3;
-        }
-        function sampleBez(b, n) {
-            const [r0,z0,c1r,c1z,c2r,c2z,r3,z3] = b;
-            const pts = [];
-            for (let i=0; i<=n; i++) {
-                const t=i/n;
-                pts.push([cx(bez(t,r0,c1r,c2r,r3)), cy(bez(t,z0,c1z,c2z,z3))]);
+            let W, H, S, OX, OY;
+            function resize() {
+                const rect = canvas.parentElement.getBoundingClientRect();
+                W = canvas.width = Math.round(rect.width * dpr);
+                H = canvas.height = Math.round(rect.height * dpr);
+                S = Math.min(W * 0.82 / 37, H * 0.82 / 44);
+                OX = W * 0.07;
+                OY = H * 0.89 - 12 * S;  // y-position of z=0 (exit plane)
             }
-            return pts;
-        }
-        function stroke(pts, col, w, a) {
-            ctx.save();
-            ctx.strokeStyle=col; ctx.lineWidth=w; ctx.globalAlpha=a;
-            ctx.lineCap='round'; ctx.lineJoin='round';
-            ctx.beginPath();
-            pts.forEach(([x,y],i)=> i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y));
-            ctx.stroke(); ctx.restore();
-        }
-        function rect(r0,r1,z0,z1) {
-            ctx.beginPath();
-            ctx.rect(cx(r0), cy(z1), cx(r1)-cx(r0), cy(z0)-cy(z1));
-            ctx.fill(); ctx.stroke();
-        }
+            const cx = r => OX + r * S;
+            const cy = z => OY - z * S;
 
-        let t=0;
-        function frame() {
-            t += 0.005;
-            ctx.clearRect(0,0,W,H);
+            function bez(t, p0, p1, p2, p3) {
+                const u = 1 - t;
+                return u * u * u * p0 + 3 * u * u * t * p1 + 3 * u * t * t * p2 + t * t * t * p3;
+            }
+            function sampleBez(b, n) {
+                const [r0, z0, c1r, c1z, c2r, c2z, r3, z3] = b;
+                const pts = [];
+                for (let i = 0; i <= n; i++) {
+                    const t = i / n;
+                    pts.push([cx(bez(t, r0, c1r, c2r, r3)), cy(bez(t, z0, c1z, c2z, z3))]);
+                }
+                return pts;
+            }
+            function stroke(pts, col, w, a) {
+                ctx.save();
+                ctx.strokeStyle = col; ctx.lineWidth = w; ctx.globalAlpha = a;
+                ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+                ctx.beginPath();
+                pts.forEach(([x, y], i) => i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y));
+                ctx.stroke(); ctx.restore();
+            }
+            function rect(r0, r1, z0, z1) {
+                ctx.beginPath();
+                ctx.rect(cx(r0), cy(z1), cx(r1) - cx(r0), cy(z0) - cy(z1));
+                ctx.fill(); ctx.stroke();
+            }
 
-            // bg
-            ctx.fillStyle='#00000c'; ctx.fillRect(0,0,W,H);
+            let t = 0;
+            function frame() {
+                t += 0.005;
+                ctx.clearRect(0, 0, W, H);
 
-            // ambient plume glow
-            const midX = (cx(CH_IN)+cx(CH_OUT))/2;
-            const ag = ctx.createRadialGradient(midX,cy(0),0, midX,cy(0), S*22);
-            ag.addColorStop(0,'rgba(0,70,200,0.10)'); ag.addColorStop(1,'rgba(0,0,0,0)');
-            ctx.fillStyle=ag; ctx.fillRect(0,0,W,H);
+                // bg
+                ctx.fillStyle = '#00000c'; ctx.fillRect(0, 0, W, H);
 
-            // iron
-            ctx.fillStyle='rgba(16,24,46,1)'; ctx.strokeStyle='rgba(55,90,150,0.45)'; ctx.lineWidth=1*dpr;
-            rect(0, OP_RO, BY_ZB-8, BY_ZB);   // back yoke
-            rect(0, IP_R,  0, CH_L);            // inner pole
-            rect(OP_RI, OP_RO, 0, CH_L);        // outer pole
+                // ambient plume glow
+                const midX = (cx(CH_IN) + cx(CH_OUT)) / 2;
+                const ag = ctx.createRadialGradient(midX, cy(0), 0, midX, cy(0), S * 22);
+                ag.addColorStop(0, 'rgba(0,70,200,0.10)'); ag.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = ag; ctx.fillRect(0, 0, W, H);
 
-            // BN walls
-            ctx.fillStyle='rgba(30,34,58,0.9)'; ctx.strokeStyle='rgba(70,80,120,0.5)';
-            rect(CH_IN-BN_T, CH_IN, 0, CH_L);
-            rect(CH_OUT, CH_OUT+BN_T, 0, CH_L);
+                // iron
+                ctx.fillStyle = 'rgba(16,24,46,1)'; ctx.strokeStyle = 'rgba(55,90,150,0.45)'; ctx.lineWidth = 1 * dpr;
+                rect(0, OP_RO, BY_ZB - 8, BY_ZB);   // back yoke
+                rect(0, IP_R, 0, CH_L);            // inner pole
+                rect(OP_RI, OP_RO, 0, CH_L);        // outer pole
 
-            // plasma channel
-            const pulse = 0.5 + 0.15*Math.sin(t*2.1);
-            const chW = cx(CH_OUT)-cx(CH_IN);
-            const pg = ctx.createLinearGradient(cx(CH_IN),0, cx(CH_OUT),0);
-            pg.addColorStop(0,   `rgba(55,0,170,${0.28*pulse})`);
-            pg.addColorStop(0.4, `rgba(90,45,240,${0.52*pulse})`);
-            pg.addColorStop(0.5, `rgba(50,130,255,${0.62*pulse})`);
-            pg.addColorStop(0.6, `rgba(90,45,240,${0.52*pulse})`);
-            pg.addColorStop(1,   `rgba(55,0,170,${0.28*pulse})`);
-            ctx.fillStyle=pg;
-            ctx.fillRect(cx(CH_IN), cy(CH_L), chW, cy(0)-cy(CH_L));
+                // BN walls
+                ctx.fillStyle = 'rgba(30,34,58,0.9)'; ctx.strokeStyle = 'rgba(70,80,120,0.5)';
+                rect(CH_IN - BN_T, CH_IN, 0, CH_L);
+                rect(CH_OUT, CH_OUT + BN_T, 0, CH_L);
 
-            // plume
-            const pl = ctx.createRadialGradient(midX,cy(-1),0, midX,cy(-1),chW*2.8);
-            pl.addColorStop(0,`rgba(0,90,255,${0.28*pulse})`);
-            pl.addColorStop(0.5,`rgba(0,55,180,${0.10*pulse})`);
-            pl.addColorStop(1,'rgba(0,0,0,0)');
-            ctx.fillStyle=pl; ctx.beginPath(); ctx.arc(midX,cy(-1),chW*2.8,0,Math.PI*2); ctx.fill();
+                // plasma channel
+                const pulse = 0.5 + 0.15 * Math.sin(t * 2.1);
+                const chW = cx(CH_OUT) - cx(CH_IN);
+                const pg = ctx.createLinearGradient(cx(CH_IN), 0, cx(CH_OUT), 0);
+                pg.addColorStop(0, `rgba(55,0,170,${0.28 * pulse})`);
+                pg.addColorStop(0.4, `rgba(90,45,240,${0.52 * pulse})`);
+                pg.addColorStop(0.5, `rgba(50,130,255,${0.62 * pulse})`);
+                pg.addColorStop(0.6, `rgba(90,45,240,${0.52 * pulse})`);
+                pg.addColorStop(1, `rgba(55,0,170,${0.28 * pulse})`);
+                ctx.fillStyle = pg;
+                ctx.fillRect(cx(CH_IN), cy(CH_L), chW, cy(0) - cy(CH_L));
 
-            // field lines
-            FL.forEach((fl,idx) => {
-                const pts = sampleBez(fl.b, 80);
-                const col = fl.key ? '#00d4ff' : '#3080ee';
-                stroke(pts, col, 11*dpr, 0.030*fl.dim);
-                stroke(pts, col,  4*dpr, 0.090*fl.dim);
-                stroke(pts, col, 1.2*dpr,0.55 *fl.dim);
+                // plume
+                const pl = ctx.createRadialGradient(midX, cy(-1), 0, midX, cy(-1), chW * 2.8);
+                pl.addColorStop(0, `rgba(0,90,255,${0.28 * pulse})`);
+                pl.addColorStop(0.5, `rgba(0,55,180,${0.10 * pulse})`);
+                pl.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = pl; ctx.beginPath(); ctx.arc(midX, cy(-1), chW * 2.8, 0, Math.PI * 2); ctx.fill();
 
-                // particle
-                const p = particles[idx];
-                p.t = (p.t + p.spd) % 1.0;
-                const [r0,z0,c1r,c1z,c2r,c2z,r3,z3]=fl.b;
-                const px=cx(bez(p.t,r0,c1r,c2r,r3)), py=cy(bez(p.t,z0,c1z,c2z,z3));
-                const pg2=ctx.createRadialGradient(px,py,0,px,py,7*dpr);
-                pg2.addColorStop(0, fl.key?'rgba(255,255,255,0.95)':`rgba(100,190,255,${0.6*fl.dim})`);
-                pg2.addColorStop(1,'rgba(0,0,0,0)');
-                ctx.fillStyle=pg2; ctx.beginPath(); ctx.arc(px,py,7*dpr,0,Math.PI*2); ctx.fill();
-            });
+                // field lines
+                FL.forEach((fl, idx) => {
+                    const pts = sampleBez(fl.b, 80);
+                    const col = fl.key ? '#00d4ff' : '#3080ee';
+                    stroke(pts, col, 11 * dpr, 0.030 * fl.dim);
+                    stroke(pts, col, 4 * dpr, 0.090 * fl.dim);
+                    stroke(pts, col, 1.2 * dpr, 0.55 * fl.dim);
 
-            // exit plane
-            ctx.save();
-            ctx.strokeStyle='rgba(0,212,255,0.20)'; ctx.lineWidth=1*dpr;
-            ctx.setLineDash([4*dpr,5*dpr]);
-            ctx.beginPath(); ctx.moveTo(cx(0),cy(0)); ctx.lineTo(cx(36),cy(0)); ctx.stroke();
-            ctx.setLineDash([]); ctx.restore();
+                    // particle
+                    const p = particles[idx];
+                    p.t = (p.t + p.spd) % 1.0;
+                    const [r0, z0, c1r, c1z, c2r, c2z, r3, z3] = fl.b;
+                    const px = cx(bez(p.t, r0, c1r, c2r, r3)), py = cy(bez(p.t, z0, c1z, c2z, z3));
+                    const pg2 = ctx.createRadialGradient(px, py, 0, px, py, 7 * dpr);
+                    pg2.addColorStop(0, fl.key ? 'rgba(255,255,255,0.95)' : `rgba(100,190,255,${0.6 * fl.dim})`);
+                    pg2.addColorStop(1, 'rgba(0,0,0,0)');
+                    ctx.fillStyle = pg2; ctx.beginPath(); ctx.arc(px, py, 7 * dpr, 0, Math.PI * 2); ctx.fill();
+                });
 
-            // centreline
-            ctx.save();
-            ctx.strokeStyle='rgba(255,255,255,0.07)'; ctx.lineWidth=1*dpr;
-            ctx.setLineDash([3*dpr,7*dpr]);
-            ctx.beginPath(); ctx.moveTo(cx(0),cy(-13)); ctx.lineTo(cx(0),cy(30)); ctx.stroke();
-            ctx.setLineDash([]); ctx.restore();
+                // exit plane
+                ctx.save();
+                ctx.strokeStyle = 'rgba(0,212,255,0.20)'; ctx.lineWidth = 1 * dpr;
+                ctx.setLineDash([4 * dpr, 5 * dpr]);
+                ctx.beginPath(); ctx.moveTo(cx(0), cy(0)); ctx.lineTo(cx(36), cy(0)); ctx.stroke();
+                ctx.setLineDash([]); ctx.restore();
 
-            // labels
-            const fs = Math.max(9, Math.round(10.5*S/14)) * dpr;
-            ctx.font = `${fs}px Inter,sans-serif`;
+                // centreline
+                ctx.save();
+                ctx.strokeStyle = 'rgba(255,255,255,0.07)'; ctx.lineWidth = 1 * dpr;
+                ctx.setLineDash([3 * dpr, 7 * dpr]);
+                ctx.beginPath(); ctx.moveTo(cx(0), cy(-13)); ctx.lineTo(cx(0), cy(30)); ctx.stroke();
+                ctx.setLineDash([]); ctx.restore();
 
-            ctx.fillStyle='rgba(0,212,255,0.38)';
-            ctx.textAlign='left';
-            ctx.fillText('─ ─  exit plane', cx(0.5), cy(0)+14*dpr);
+                // labels
+                const fs = Math.max(9, Math.round(10.5 * S / 14)) * dpr;
+                ctx.font = `${fs}px Inter,sans-serif`;
 
-            ctx.fillStyle='rgba(110,175,255,0.45)';
-            ctx.textAlign='center';
-            ctx.fillText('PLASMA', cx(20.5), cy(10));
+                ctx.fillStyle = 'rgba(0,212,255,0.38)';
+                ctx.textAlign = 'left';
+                ctx.fillText('─ ─  exit plane', cx(0.5), cy(0) + 14 * dpr);
 
-            ctx.fillStyle='rgba(0,212,255,0.60)';
-            ctx.textAlign='right';
-            const ky = cy(0)-8*dpr;
-            ctx.fillText('shielded field line', cx(16), ky);
+                ctx.fillStyle = 'rgba(110,175,255,0.45)';
+                ctx.textAlign = 'center';
+                ctx.fillText('PLASMA', cx(20.5), cy(10));
 
-            requestAnimationFrame(frame);
-        }
+                ctx.fillStyle = 'rgba(0,212,255,0.60)';
+                ctx.textAlign = 'right';
+                const ky = cy(0) - 8 * dpr;
+                ctx.fillText('shielded field line', cx(16), ky);
 
-        resize();
-        frame();
-        window.addEventListener('resize', resize);
-    })();
+                requestAnimationFrame(frame);
+            }
+
+            resize();
+            frame();
+            window.addEventListener('resize', resize);
+        })();
     </script>
 
     <!-- ── AURORA ────────────────────────────────────────────────────── -->
     <section id="aurora" style="background: var(--surface); border-top: 1px solid var(--border);">
         <div class="section-label">AURORA</div>
         <h2 class="section-title">Adaptive Unified Real-time<br>Operation and Regulation Algorithm</h2>
-        <p class="section-sub">AURORA is the neural PPU controller that runs on-board — named for the Aurora Borealis, the visual signature of charged particles guided by a magnetic field. It sits alongside the Aegis hardware and holds the optimal operating point in real time.</p>
+        <p class="section-sub">AURORA is the neural PPU controller that runs on-board — named for the Aurora Borealis,
+            the visual signature of charged particles guided by a magnetic field. It sits alongside the Aegis hardware
+            and holds the optimal operating point in real time.</p>
 
         <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 48px;">
-            <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 32px 28px;">
-                <div style="font-size:0.72rem; font-weight:600; letter-spacing:0.12em; color:var(--accent); text-transform:uppercase; margin-bottom:12px;">AURORA v1 — Current</div>
-                <h3 style="font-size:1.1rem; font-weight:600; margin-bottom:12px; color:var(--text);">Coil current optimiser</h3>
-                <p style="font-size:0.875rem; color:var(--text-muted); line-height:1.75;">SAC RL agent sets three coil currents to minimise cathode ion flux and wall erosion. Trained on the Aegis physics surrogate. Deployed as microcontroller firmware. Runs autonomously — no ground commands needed.</p>
+            <div
+                style="background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 32px 28px;">
+                <div
+                    style="font-size:0.72rem; font-weight:600; letter-spacing:0.12em; color:var(--accent); text-transform:uppercase; margin-bottom:12px;">
+                    AURORA v1 — Current</div>
+                <h3 style="font-size:1.1rem; font-weight:600; margin-bottom:12px; color:var(--text);">Coil current
+                    optimiser</h3>
+                <p style="font-size:0.875rem; color:var(--text-muted); line-height:1.75;">SAC RL agent sets three coil
+                    currents to minimise cathode ion flux and wall erosion. Trained on the Aegis physics surrogate.
+                    Deployed as microcontroller firmware. Runs autonomously — no ground commands needed.</p>
             </div>
-            <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 32px 28px; opacity:0.65;">
-                <div style="font-size:0.72rem; font-weight:600; letter-spacing:0.12em; color:var(--text-muted); text-transform:uppercase; margin-bottom:12px;">AURORA v2 — Post hardware v1</div>
-                <h3 style="font-size:1.1rem; font-weight:600; margin-bottom:12px; color:var(--text);">Breathing mode control</h3>
-                <p style="font-size:0.875rem; color:var(--text-muted); line-height:1.75;">Adds discharge voltage modulation to suppress the 10–30 kHz breathing mode oscillation. Requires real firing data. Gated on hardware v1 validation.</p>
+            <div
+                style="background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 32px 28px; opacity:0.65;">
+                <div
+                    style="font-size:0.72rem; font-weight:600; letter-spacing:0.12em; color:var(--text-muted); text-transform:uppercase; margin-bottom:12px;">
+                    AURORA v2 — Post hardware v1</div>
+                <h3 style="font-size:1.1rem; font-weight:600; margin-bottom:12px; color:var(--text);">Breathing mode
+                    control</h3>
+                <p style="font-size:0.875rem; color:var(--text-muted); line-height:1.75;">Adds discharge voltage
+                    modulation to suppress the 10–30 kHz breathing mode oscillation. Requires real firing data. Gated on
+                    hardware v1 validation.</p>
             </div>
-            <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 32px 28px; opacity:0.65;">
-                <div style="font-size:0.72rem; font-weight:600; letter-spacing:0.12em; color:var(--text-muted); text-transform:uppercase; margin-bottom:12px;">AURORA v3 — Fleet</div>
-                <h3 style="font-size:1.1rem; font-weight:600; margin-bottom:12px; color:var(--text);">Lifetime-aware adaptation</h3>
-                <p style="font-size:0.875rem; color:var(--text-muted); line-height:1.75;">Learns thruster degradation trajectory from telemetry. Adjusts operating points as cathode and channel age. Updated parameters uplinked from ground fleet analytics.</p>
+            <div
+                style="background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 32px 28px; opacity:0.65;">
+                <div
+                    style="font-size:0.72rem; font-weight:600; letter-spacing:0.12em; color:var(--text-muted); text-transform:uppercase; margin-bottom:12px;">
+                    AURORA v3 — Fleet</div>
+                <h3 style="font-size:1.1rem; font-weight:600; margin-bottom:12px; color:var(--text);">Lifetime-aware
+                    adaptation</h3>
+                <p style="font-size:0.875rem; color:var(--text-muted); line-height:1.75;">Learns thruster degradation
+                    trajectory from telemetry. Adjusts operating points as cathode and channel age. Updated parameters
+                    uplinked from ground fleet analytics.</p>
             </div>
         </div>
     </section>
 
     <!-- ── Product ────────────────────────────────────────────────────── -->
-    <section id="product" style="background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+    <section id="product"
+        style="background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
         <div class="section-label">Product</div>
         <h2 class="section-title">A complete propulsion system —<br>HET + PPU, fully integrated</h2>
-        <p class="section-sub">Most thruster vendors sell you a thruster head and leave the PPU to someone else. We ship the full electric propulsion system: 200 W Krypton Hall thruster, power processing unit, and Aegis flight software — qualified together, integrated, ready to bolt on.</p>
+        <p class="section-sub">Most thruster vendors sell you a thruster head and leave the PPU to someone else. We ship
+            the full electric propulsion system: 200 W Krypton Hall thruster, power processing unit, and Aegis flight
+            software — qualified together, integrated, ready to bolt on.</p>
 
         <div class="product-layout">
             <div>
                 <div class="dev-badge">In Development</div>
                 <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.8; margin-bottom: 32px;">
-                    The system is in the simulation and detailed design phase. Physics models have been validated against published experimental data and independent simulation frameworks. Hardware development is in progress.
+                    The system is in the simulation and detailed design phase. Physics models have been validated
+                    against published experimental data and independent simulation frameworks. Hardware development is
+                    in progress.
                 </p>
                 <div class="spec-table">
                     <div class="spec-row">
@@ -947,31 +1075,37 @@
                         <div class="roadmap-dot done"></div>
                         <div class="roadmap-phase">Phase 1 — Complete</div>
                         <div class="roadmap-title">Physics modelling & validation</div>
-                        <div class="roadmap-desc">2D finite-difference magnetic solver, reinforcement learning environment, and validation against published HET data and independent simulation frameworks.</div>
+                        <div class="roadmap-desc">2D finite-difference magnetic solver, reinforcement learning
+                            environment, and validation against published HET data and independent simulation
+                            frameworks.</div>
                     </div>
                     <div class="roadmap-item">
                         <div class="roadmap-dot done"></div>
                         <div class="roadmap-phase">Phase 2 — Complete</div>
                         <div class="roadmap-title">Aegis optimisation</div>
-                        <div class="roadmap-desc">Flux-surface matched pole geometry finalised. Aegis RL agent trained and evaluated. Magnetic shielding configuration selected.</div>
+                        <div class="roadmap-desc">Flux-surface matched pole geometry finalised. Aegis RL agent trained
+                            and evaluated. Magnetic shielding configuration selected.</div>
                     </div>
                     <div class="roadmap-item">
                         <div class="roadmap-dot active"></div>
                         <div class="roadmap-phase">Phase 3 — Active</div>
                         <div class="roadmap-title">Detailed hardware design</div>
-                        <div class="roadmap-desc">Pole piece geometry, BN channel, PPU schematic, hollow cathode integration, and propellant feed system specification.</div>
+                        <div class="roadmap-desc">Pole piece geometry, BN channel, PPU schematic, hollow cathode
+                            integration, and propellant feed system specification.</div>
                     </div>
                     <div class="roadmap-item">
                         <div class="roadmap-dot"></div>
                         <div class="roadmap-phase">Phase 4</div>
                         <div class="roadmap-title">Bench hardware &amp; vacuum testing</div>
-                        <div class="roadmap-desc">First article manufacture, vacuum facility testing, performance and lifetime characterisation.</div>
+                        <div class="roadmap-desc">First article manufacture, vacuum facility testing, performance and
+                            lifetime characterisation.</div>
                     </div>
                     <div class="roadmap-item">
                         <div class="roadmap-dot"></div>
                         <div class="roadmap-phase">Phase 5</div>
                         <div class="roadmap-title">Flight qualification</div>
-                        <div class="roadmap-desc">Environmental testing, qualification campaign, and first flight opportunity.</div>
+                        <div class="roadmap-desc">Environmental testing, qualification campaign, and first flight
+                            opportunity.</div>
                     </div>
                 </div>
             </div>
@@ -982,7 +1116,8 @@
     <section id="team">
         <div class="section-label">Team</div>
         <h2 class="section-title">Built by engineers who care about the mission</h2>
-        <p class="section-sub">We're a focused technical team combining expertise in spacecraft systems engineering and computational physics, united by the goal of making European in-space propulsion genuinely competitive.</p>
+        <p class="section-sub">We're a focused technical team combining expertise in spacecraft systems engineering and
+            computational physics, united by the goal of making European in-space propulsion genuinely competitive.</p>
 
         <div class="team-grid">
             <div class="team-card">
@@ -990,7 +1125,8 @@
                 <div class="team-info">
                     <div class="team-name">Max Simmonds</div>
                     <div class="team-role">Co-founder · Hardware &amp; Software</div>
-                    <div class="team-bio">Electrical and software engineer. Responsible for PPU design, Aegis RL architecture, simulation stack, and overall system integration.</div>
+                    <div class="team-bio">Electrical and software engineer. Responsible for PPU design, Aegis RL
+                        architecture, simulation stack, and overall system integration.</div>
                 </div>
             </div>
             <div class="team-card">
@@ -998,7 +1134,9 @@
                 <div class="team-info">
                     <div class="team-name">Tiziano Fiore</div>
                     <div class="team-role">Co-founder · Physics &amp; Propulsion</div>
-                    <div class="team-bio">Propulsion physicist and thruster design lead. Responsible for magnetic circuit design, plasma physics modelling, channel geometry, and experimental validation strategy.</div>
+                    <div class="team-bio">Propulsion physicist and thruster design lead. Responsible for magnetic
+                        circuit design, plasma physics modelling, channel geometry, and experimental validation
+                        strategy.</div>
                 </div>
             </div>
         </div>
@@ -1008,158 +1146,161 @@
     <section id="contact" class="contact-section">
         <div class="section-label">Contact</div>
         <h2 class="section-title">Work with us</h2>
-        <p class="section-sub">We're looking for early partners — satellite operators, investors, and research collaborators who believe the next decade of space belongs to intelligent, sovereign propulsion. Get in touch.</p>
-        <a href="mailto:maxsimmonds1337@gmail.com" class="btn btn-primary" style="margin-top: 8px;">maxsimmonds1337@gmail.com</a>
+        <p class="section-sub">We're looking for early partners — satellite operators, investors, and research
+            collaborators who believe the next decade of space belongs to intelligent, sovereign propulsion. Get in
+            touch.</p>
+        <a href="mailto:maxsimmonds1337@gmail.com" class="btn btn-primary"
+            style="margin-top: 8px;">maxsimmonds1337@gmail.com</a>
     </section>
 
     <!-- ── Orbiting dots overlay ─────────────────────────────────────── -->
     <script>
-    (function () {
-        // ── Canvas ──────────────────────────────────────────────────────────
-        const cv  = document.createElement('canvas');
-        cv.style.cssText = 'position:fixed;top:0;left:0;pointer-events:none;z-index:9000';
-        document.body.appendChild(cv);
-        const ctx = cv.getContext('2d');
-        const dpr = window.devicePixelRatio || 1;
+        (function () {
+            // ── Canvas ──────────────────────────────────────────────────────────
+            const cv = document.createElement('canvas');
+            cv.style.cssText = 'position:fixed;top:0;left:0;pointer-events:none;z-index:9000';
+            document.body.appendChild(cv);
+            const ctx = cv.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
 
-        function resize() {
-            cv.width  = window.innerWidth  * dpr;
-            cv.height = window.innerHeight * dpr;
-            cv.style.width  = window.innerWidth  + 'px';
-            cv.style.height = window.innerHeight + 'px';
-        }
-        resize();
-        window.addEventListener('resize', resize);
+            function resize() {
+                cv.width = window.innerWidth * dpr;
+                cv.height = window.innerHeight * dpr;
+                cv.style.width = window.innerWidth + 'px';
+                cv.style.height = window.innerHeight + 'px';
+            }
+            resize();
+            window.addEventListener('resize', resize);
 
-        // ── Easing ──────────────────────────────────────────────────────────
-        const easeInOut = t => t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
-        const easeOut3  = t => 1 - Math.pow(1-t, 3);
-        const easeOut5  = t => 1 - Math.pow(1-t, 5);
+            // ── Easing ──────────────────────────────────────────────────────────
+            const easeInOut = t => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+            const easeOut3 = t => 1 - Math.pow(1 - t, 3);
+            const easeOut5 = t => 1 - Math.pow(1 - t, 5);
 
-        // ── Glow dot renderer ────────────────────────────────────────────────
-        function drawDot(x, y, r, a) {
-            if (a < 0.005) return;
-            const g = ctx.createRadialGradient(x, y, 0, x, y, r * 7);
-            g.addColorStop(0,   `rgba(0,212,255,${a * 0.40})`);
-            g.addColorStop(0.4, `rgba(0,212,255,${a * 0.10})`);
-            g.addColorStop(1,   'rgba(0,0,0,0)');
-            ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r*7, 0, Math.PI*2); ctx.fill();
-            const g2 = ctx.createRadialGradient(x, y, 0, x, y, r * 2);
-            g2.addColorStop(0, `rgba(220,248,255,${a * 0.88})`);
-            g2.addColorStop(1, `rgba(0,212,255,${a * 0.10})`);
-            ctx.fillStyle = g2; ctx.beginPath(); ctx.arc(x, y, r*2, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = `rgba(255,255,255,${a})`;
-            ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fill();
-        }
+            // ── Glow dot renderer ────────────────────────────────────────────────
+            function drawDot(x, y, r, a) {
+                if (a < 0.005) return;
+                const g = ctx.createRadialGradient(x, y, 0, x, y, r * 7);
+                g.addColorStop(0, `rgba(0,212,255,${a * 0.40})`);
+                g.addColorStop(0.4, `rgba(0,212,255,${a * 0.10})`);
+                g.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r * 7, 0, Math.PI * 2); ctx.fill();
+                const g2 = ctx.createRadialGradient(x, y, 0, x, y, r * 2);
+                g2.addColorStop(0, `rgba(220,248,255,${a * 0.88})`);
+                g2.addColorStop(1, `rgba(0,212,255,${a * 0.10})`);
+                ctx.fillStyle = g2; ctx.beginPath(); ctx.arc(x, y, r * 2, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = `rgba(255,255,255,${a})`;
+                ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+            }
 
-        // ── Logo geometry ────────────────────────────────────────────────────
-        function getLogoGeo() {
-            const el = document.querySelector('header .logo');
-            if (!el) return null;
-            const r   = el.getBoundingClientRect();
-            const cx  = r.left + r.width  * 0.5;
-            const cy  = r.top  + r.height * 0.5;
-            const sep  = r.width  * 0.16;
-            const rise = r.height * 0.40;
-            return {
-                cx, cy,
-                orbitR: Math.max(r.width, r.height) * 1.15,
-                t0: { x: cx - sep, y: cy - rise },
-                t1: { x: cx + sep, y: cy - rise }
-            };
-        }
+            // ── Logo geometry ────────────────────────────────────────────────────
+            function getLogoGeo() {
+                const el = document.querySelector('header .logo');
+                if (!el) return null;
+                const r = el.getBoundingClientRect();
+                const cx = r.left + r.width * 0.5;
+                const cy = r.top + r.height * 0.5;
+                const sep = r.width * 0.16;
+                const rise = r.height * 0.40;
+                return {
+                    cx, cy,
+                    orbitR: Math.max(r.width, r.height) * 1.15,
+                    t0: {x: cx - sep, y: cy - rise},
+                    t1: {x: cx + sep, y: cy - rise}
+                };
+            }
 
-        // ── Spring helper ────────────────────────────────────────────────────
-        const dots = [{ x:0,y:0,vx:0,vy:0 }, { x:0,y:0,vx:0,vy:0 }];
-        function springDot(d, tx, ty, k, damp) {
-            d.vx += (tx - d.x)*k; d.vy += (ty - d.y)*k;
-            d.vx *= damp;          d.vy *= damp;
-            d.x  += d.vx;         d.y  += d.vy;
-        }
+            // ── Spring helper ────────────────────────────────────────────────────
+            const dots = [{x: 0, y: 0, vx: 0, vy: 0}, {x: 0, y: 0, vx: 0, vy: 0}];
+            function springDot(d, tx, ty, k, damp) {
+                d.vx += (tx - d.x) * k; d.vy += (ty - d.y) * k;
+                d.vx *= damp; d.vy *= damp;
+                d.x += d.vx; d.y += d.vy;
+            }
 
-        // ── Constants ────────────────────────────────────────────────────────
-        const T_ORBIT   = 6000;   // ms: orbit + spiral-in (slow, unhurried)
-        const SPIRAL_AT = 0.60;   // fraction before radius decays
+            // ── Constants ────────────────────────────────────────────────────────
+            const T_ORBIT = 6000;   // ms: orbit + spiral-in (slow, unhurried)
+            const SPIRAL_AT = 0.60;   // fraction before radius decays
 
-        let epoch  = null;
-        let done   = false;       // true once settled — just float from then on
-        let lastTs = null;
+            let epoch = null;
+            let done = false;       // true once settled — just float from then on
+            let lastTs = null;
 
-        // ── Scroll inertia ───────────────────────────────────────────────────
-        let lastScrollY        = window.scrollY;
-        let pendingScrollDelta = 0;
-        window.addEventListener('scroll', () => {
-            pendingScrollDelta += window.scrollY - lastScrollY;
-            lastScrollY = window.scrollY;
-        }, { passive: true });
+            // ── Scroll inertia ───────────────────────────────────────────────────
+            let lastScrollY = window.scrollY;
+            let pendingScrollDelta = 0;
+            window.addEventListener('scroll', () => {
+                pendingScrollDelta += window.scrollY - lastScrollY;
+                lastScrollY = window.scrollY;
+            }, {passive: true});
 
-        // ── Frame ────────────────────────────────────────────────────────────
-        function frame(ts) {
-            requestAnimationFrame(frame);
-            if (!lastTs) { lastTs = ts; epoch = ts; return; }
-            lastTs = ts;
+            // ── Frame ────────────────────────────────────────────────────────────
+            function frame(ts) {
+                requestAnimationFrame(frame);
+                if (!lastTs) {lastTs = ts; epoch = ts; return;}
+                lastTs = ts;
 
-            const geo = getLogoGeo();
-            if (!geo) return;
+                const geo = getLogoGeo();
+                if (!geo) return;
 
-            ctx.clearRect(0, 0, cv.width, cv.height);
-            const DR = 2.6 * dpr;
+                ctx.clearRect(0, 0, cv.width, cv.height);
+                const DR = 2.6 * dpr;
 
-            if (done) {
-                // Apply scroll impulse — scroll down kicks dots upward
-                if (pendingScrollDelta !== 0) {
-                    const impulse = pendingScrollDelta * -0.18 * dpr;
-                    dots[0].vy += impulse;
-                    dots[1].vy += impulse;
-                    pendingScrollDelta = 0;
+                if (done) {
+                    // Apply scroll impulse — scroll down kicks dots upward
+                    if (pendingScrollDelta !== 0) {
+                        const impulse = pendingScrollDelta * -0.18 * dpr;
+                        dots[0].vy += impulse;
+                        dots[1].vy += impulse;
+                        pendingScrollDelta = 0;
+                    }
+
+                    // Gentle float forever after settling
+                    const bob = Math.sin(ts * 0.00090) * 1.4;  // ±1.4 px, ~7s period
+                    springDot(dots[0], geo.t0.x * dpr, (geo.t0.y + bob) * dpr, 0.14, 0.76);
+                    springDot(dots[1], geo.t1.x * dpr, (geo.t1.y + bob) * dpr, 0.14, 0.76);
+                    drawDot(dots[0].x, dots[0].y, DR, 0.90);
+                    drawDot(dots[1].x, dots[1].y, DR, 0.90);
+                    return;
                 }
+                pendingScrollDelta = 0; // discard scroll during orbit
 
-                // Gentle float forever after settling
-                const bob = Math.sin(ts * 0.00090) * 1.4;  // ±1.4 px, ~7s period
-                springDot(dots[0], geo.t0.x*dpr, (geo.t0.y + bob)*dpr, 0.14, 0.76);
-                springDot(dots[1], geo.t1.x*dpr, (geo.t1.y + bob)*dpr, 0.14, 0.76);
-                drawDot(dots[0].x, dots[0].y, DR, 0.90);
-                drawDot(dots[1].x, dots[1].y, DR, 0.90);
-                return;
+                const orbitP = Math.min((ts - epoch) / T_ORBIT, 1.0);
+                const spiralP = Math.max(0, (orbitP - SPIRAL_AT) / (1 - SPIRAL_AT));
+                const phase1P = Math.min(orbitP / SPIRAL_AT, 1.0);
+                const R = geo.orbitR * dpr * (1 - easeOut5(spiralP));
+                const driftT = easeOut3(spiralP);
+                const theta = phase1P * Math.PI * 2.8          // ~1.4 slow revolutions
+                    + spiralP * Math.PI * 0.9 * (1 - easeInOut(spiralP) * 0.8);
+                const a1 = -Math.PI * 0.5 - theta;
+                const a2 = a1 + Math.PI * 0.9;
+
+                const lcx = geo.cx * dpr, lcy = geo.cy * dpr;
+                const c0x = lcx + (geo.t0.x * dpr - lcx) * driftT;
+                const c0y = lcy + (geo.t0.y * dpr - lcy) * driftT;
+                const c1x = lcx + (geo.t1.x * dpr - lcx) * driftT;
+                const c1y = lcy + (geo.t1.y * dpr - lcy) * driftT;
+
+                springDot(dots[0], c0x + Math.cos(a1) * R, c0y + Math.sin(a1) * R, 0.22, 0.70);
+                springDot(dots[1], c1x + Math.cos(a2) * R, c1y + Math.sin(a2) * R, 0.22, 0.70);
+                drawDot(dots[0].x, dots[0].y, DR, 0.84);
+                drawDot(dots[1].x, dots[1].y, DR, 0.84);
+
+                if (orbitP >= 1.0) done = true;
             }
-            pendingScrollDelta = 0; // discard scroll during orbit
 
-            const orbitP  = Math.min((ts - epoch) / T_ORBIT, 1.0);
-            const spiralP = Math.max(0, (orbitP - SPIRAL_AT) / (1 - SPIRAL_AT));
-            const phase1P = Math.min(orbitP / SPIRAL_AT, 1.0);
-            const R       = geo.orbitR * dpr * (1 - easeOut5(spiralP));
-            const driftT  = easeOut3(spiralP);
-            const theta   = phase1P * Math.PI * 2.8          // ~1.4 slow revolutions
-                          + spiralP * Math.PI * 0.9 * (1 - easeInOut(spiralP) * 0.8);
-            const a1 = -Math.PI * 0.5 - theta;
-            const a2 = a1 + Math.PI * 0.9;
+            // ── Init ─────────────────────────────────────────────────────────────
+            document.fonts.ready.then(() => {
+                const geo = getLogoGeo();
+                if (geo) {
+                    dots[0].x = geo.t0.x * dpr; dots[0].y = geo.t0.y * dpr;
+                    dots[1].x = geo.t1.x * dpr; dots[1].y = geo.t1.y * dpr;
+                }
+                document.body.classList.add('dots-active');
+                requestAnimationFrame(frame);
+            });
 
-            const lcx = geo.cx*dpr, lcy = geo.cy*dpr;
-            const c0x = lcx + (geo.t0.x*dpr - lcx) * driftT;
-            const c0y = lcy + (geo.t0.y*dpr - lcy) * driftT;
-            const c1x = lcx + (geo.t1.x*dpr - lcx) * driftT;
-            const c1y = lcy + (geo.t1.y*dpr - lcy) * driftT;
-
-            springDot(dots[0], c0x + Math.cos(a1)*R, c0y + Math.sin(a1)*R, 0.22, 0.70);
-            springDot(dots[1], c1x + Math.cos(a2)*R, c1y + Math.sin(a2)*R, 0.22, 0.70);
-            drawDot(dots[0].x, dots[0].y, DR, 0.84);
-            drawDot(dots[1].x, dots[1].y, DR, 0.84);
-
-            if (orbitP >= 1.0) done = true;
-        }
-
-        // ── Init ─────────────────────────────────────────────────────────────
-        document.fonts.ready.then(() => {
-            const geo = getLogoGeo();
-            if (geo) {
-                dots[0].x = geo.t0.x*dpr; dots[0].y = geo.t0.y*dpr;
-                dots[1].x = geo.t1.x*dpr; dots[1].y = geo.t1.y*dpr;
-            }
-            document.body.classList.add('dots-active');
-            requestAnimationFrame(frame);
-        });
-
-    })();
+        })();
     </script>
 
     <!-- ── Footer ─────────────────────────────────────────────────────── -->
